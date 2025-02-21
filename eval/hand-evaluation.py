@@ -1,4 +1,5 @@
 from gamelogic.card import Card
+import evallookup
 
 # based on the method described at http://suffe.cool/poker/evaluator.html
 
@@ -14,11 +15,7 @@ from gamelogic.card import Card
 # 1 being the best hand type (all royal flushes) 
 # and 7462 being the worst (75432o)
 
-def evaluateFiveCardFromCardObj(Cards : list[Card]) -> int:
-    ...
-    return evaluateFiveCardFromBin(...)
-
-def evaluateFiveCardFromBin(Cards : list[int]) -> int:
+def evaluateFiveCardFromBin(c1 : int, c2 : int, c3 : int, c4 : int, c5 : int) -> int:
     ...
     return -1
 
