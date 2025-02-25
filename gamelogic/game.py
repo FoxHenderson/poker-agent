@@ -33,3 +33,52 @@ class Deck:
         self.deck.remove(card)
         self.size -= 1
         return card
+
+
+class Table:
+    def __init__(self):
+        self.dealer = 0
+        self.deck = Deck()
+        self.flop = None
+        self.river = None
+        self.turn = None
+
+
+    def revealFlop(self):
+        self.flop = self.deck.drawCard()
+
+    def revealRiver(self):
+        self.river = self.deck.drawCard()
+
+    def revealTurn(self):
+        self.turn = self.deck.drawCard()
+
+
+    def showCentreCards(self):
+        return(self.flop, self.river, self.turn)
+
+
+class PlayerHoles:
+    def __init__(self, card1, card2):
+        self.card1 = card1
+        self.card2 = card2
+
+    def showCards(self):
+        return (self.card1.rank + self.card1.suit), (self.card2.rank + self.card2.suit)
+        
+
+
+class Game:
+    def __init__(self):
+        self.table = Table()
+        self.players = self.dealCards()
+
+    def dealCards(self):
+        players_num = 2
+        player_holes = []
+        for i in range(0, players_num):
+            p = PlayerHoles(self.table.deck.drawCard(), self.table.deck.drawCard())
+            p.showCards()
+            player_holes.append(p)
+        return player_holes
+        
