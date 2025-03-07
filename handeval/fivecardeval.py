@@ -1,10 +1,13 @@
-#from gamelogic.card import Card
 import evallookup as ev
 import numpy as np
+#from gamelogic.game import Card
 
 # used for the hand evalutation phase of the poker game logic
 #def get5cardRanking(cards : list[Card]) -> int:
-    #...
+#    if len(cards) != 5:
+#        raise IndexError
+    
+#    evalFromBin(cards[0].bin, cards[1].bin, cards[2].bin, cards[3].bin, cards[4].bin)
 
 # based on the method described at http://suffe.cool/poker/evaluator.html
 
@@ -16,26 +19,27 @@ import numpy as np
 # cdhs = suit of card (bit turned on based on suit of card)
 # b = bit turned on depending on rank of card
 
-# takes an input of 5 card objects returns an integer 1-7462 representing a hands ranking, with 
+# takes an input of binary card representations returns an integer 1-7462 representing a hands ranking, with 
 # 1 being the best hand type (all royal flushes) 
 # and 7462 being the worst (75432o)
 # can be utilised by the ai agent
 
-def evalFromBin(c1 : int, c2 : int, c3 : int, c4 : int, c5 : int) -> int:
+def evalFromBin(c1 : int, c2 : int, c3 : int, c4 : int, c5 : int) -> np.uint16:
     q = (c1 | c2 | c3 | c4 | c5) >> 16
     s: np.int16
 
     # check flushes
     if (c1 & c2 & c3 & c4 & c5 & 0xf000):
-        return ev.flushes[q]
+        return np.uint16(ev.flushes[q])
 
     # check straights and high card
     s = ev.unique5[q]
     if (s):
-        return s
+        return np.uint16(s)
+    
     # hash lookup other hands
     q = ((c1 & 0xff) * (c2 & 0xff) * (c3 & 0xff) * (c4 & 0xff) * (c5 & 0xff))
-    print(q)
+    print(f"Hashed key: {q}")  
     return ev.hash_values[findFast(q)]
 
 def findFast(u : np.uint32) -> np.uint32:
@@ -43,17 +47,19 @@ def findFast(u : np.uint32) -> np.uint32:
     b : np.uint32
     r : np.uint32
 
-    u += 0xe91aaa35
-    u ^= u >> 16
-    u += u << 8
-    u ^= u >> 4
-    b  = (u >> 8) & 0x1ff
-    a  = (u + (u << 2)) >> 19
-    r  = a ^ ev.hash_adjust[b]
+    # python keeps parsing it BACK TO INT FOR NO REASON 
+
+    u = np.uint32(u + 0xe91aaa35)
+    u ^= np.uint32(u >> 16)
+    u += np.uint32(u << 8)
+    u ^= np.uint32(u >> 4)
+    b  = np.uint32((u >> 8) & 0x1ff)
+    a  = np.uint32((u + (u << 2)) >> 19)
+    r  = np.uint32(a ^ ev.hash_adjust[b])
     return r
 
 # ==================================================================
-# |                     basic test cases                           |
+# |                     basic test cases :p                        |
 # ==================================================================
 
 # 4 kings

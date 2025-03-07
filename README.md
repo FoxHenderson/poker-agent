@@ -17,3 +17,8 @@ Order of implementation
   - Get the GUI working (probably using a tkinter wrapper because tkinter is annoying)
   - Basic RL bot (maybe some sort of minmanx + alpha-beta pruning basic implementation)
   - Look at counterfactual regret minimisation / research papers on the topic
+
+
+  - Game logic
+  - GUI
+  - AI that does random moves
