@@ -16,7 +16,7 @@ class Card:
         self.bin = self.__CalculateBin(ID)
 
         # debug --------
-        print(self.suit, self.rank, self.bin)
+        print(self.suit, self.rank, format(self.bin, '#034b'))
 
     def __CalculateSuit(self, ID):
         suits = {0:"Clubs", 1: "Diamonds", 2: "Hearts",3:"Spades"}
@@ -40,7 +40,7 @@ class Card:
         # sum maffs
         prime = BIN_PRIMES[ID // 4]
         rank = (ID // 4) << 8
-        suit = (1 << (ID % 13)) << 12
+        suit = (1 << (ID % 4)) << 12
         bit = (2**(ID // 4)) << 16
         return (prime | rank | suit | bit)
 
@@ -109,12 +109,4 @@ class Game:
             player_holes.append(p)
         return player_holes
     
-
-# test the binary mibibble
-def test_mabibble():
-    cheeky_deck = Deck()
-    for card in cheeky_deck.deck:
-        #print(bin(card.bin))
-        ...
-
-test_mabibble()
+cheese = Deck()
