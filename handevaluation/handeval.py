@@ -1,4 +1,5 @@
 import evallookup as ev
+import unsuited_lookup as ul
 import numpy as np
 #from gamelogic.game import Card
 
@@ -9,28 +10,17 @@ import numpy as np
     
 #    evalFromBin(cards[0].bin, cards[1].bin, cards[2].bin, cards[3].bin, cards[4].bin)
 
-# based on the method described at http://suffe.cool/poker/evaluator.html
+def evalFromBin(c:list):
+    """Based on the method described at http://suffe.cool/poker/evaluator.html
+    takes an input of binary card representations returns an integer 1-7462"""
 
-# +--------+--------+--------+--------+
-# |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
-# +--------+--------+--------+--------+
-# p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
-# r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
-# cdhs = suit of card (bit turned on based on suit of card)
-# b = bit turned on depending on rank of card
+    primes = [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41 ]
 
-# takes an input of binary card representations returns an integer 1-7462 representing a hands ranking, with 
-# 1 being the best hand type (all royal flushes) 
-# and 7462 being the worst (75432o)
-
-def evalFromBin(c1 : int, c2 : int, c3 : int, c4 : int, c5 : int):
-
-    q = (c1 | c2 | c3 | c4 | c5)
+    q = (c[0] | c[1] | c[2] | c[3] | c[4])
     q = q >> 16
 
-    # check if hand is a flush
     # check flushes
-    if (c1 & c2 & c3 & c4 & c5 & 0xF000):
+    if (c[0] & c[1] & c[2] & c[3] & c[4] & 0xF000):
         return ev.flushes[q]
     
     # check straights and high card
@@ -38,10 +28,16 @@ def evalFromBin(c1 : int, c2 : int, c3 : int, c4 : int, c5 : int):
     if (s):
         return s
     
-    # hash lookup other hands
-    q = (c1 & 0xff) * (c2 & 0xff) * (c3 & 0xff) * (c4 & 0xff) * (c5 & 0xff)
-    print(find_fast(q))
-    return ev.hash_values[find_fast(q)]
+    # perfect hash lookup other hands
+    prime_product = 1
+    for card in c:
+        card = card >> 16
+        for i in range(13):
+            if card & (1 << i):
+                prime_product *= primes[i]
+                break # each should only have 1 bit turned on 
+
+    return ul.dict_unsuited_lookup[prime_product]
 
 def find_fast(u):
     u = (u+0xe91aaa35) & 0xFFFFFFFF
@@ -62,11 +58,11 @@ def find_fast(u):
 assert(
     evalFromBin(
         # xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
-        0b00001000_00000000_00011011_00100101, #ks
+        [0b00001000_00000000_00011011_00100101, #ks
         0b00000000_00001000_00010011_00000111, #5s
         0b00000010_00000000_00011001_00011101, #Js
         0b00000100_00000000_00011010_00011111, #Qs
-        0b00010000_00000000_00011100_00101001 #As
+        0b00010000_00000000_00011100_00101001] #As
     ) == 327
 )
 
@@ -74,21 +70,21 @@ assert(
 assert(
     evalFromBin(
         # xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
-        0b00001000_00000000_00011011_00100101, #ks
+        [0b00001000_00000000_00011011_00100101, #ks
         0b00000001_00000000_01001000_00010111, #10h
         0b00000010_00000000_00011001_00011101, #Js
         0b00000100_00000000_00011010_00011111, #Qs
-        0b00010000_00000000_00011100_00101001 #As
+        0b00010000_00000000_00011100_00101001] #As
     ) == 1600
 )
 # 4 kings
 assert(
     evalFromBin(
-        # xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
-        0b00001000_00000000_01001011_00100101, # kd
-        0b00001000_00000000_10001011_00100101, # kc
-        0b00001000_00000000_00101011_00100101, # kh
-        0b00001000_00000000_00011011_00100101, # ks
-        0b00000000_00001000_00010011_00000111 # 5s
+        #  xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
+        [0b00001000_00000000_01001011_00100101, # kd
+         0b00001000_00000000_10001011_00100101, # kc
+         0b00001000_00000000_00101011_00100101, # kh
+         0b00001000_00000000_00011011_00100101, # ks
+         0b00000000_00001000_00010011_00000111] # 5s
     ) == 31
 )
