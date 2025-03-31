@@ -1,6 +1,7 @@
 import evallookup as ev
 import unsuited_lookup as ul
 import numpy as np
+import itertools
 #from gamelogic.game import Card
 
 # used for the hand evalutation phase of the poker game logic
@@ -10,7 +11,7 @@ import numpy as np
     
 #    evalFromBin(cards[0].bin, cards[1].bin, cards[2].bin, cards[3].bin, cards[4].bin)
 
-def evalFromBin(c:list):
+def eval_from_bin(c:list):
     """Based on the method described at http://suffe.cool/poker/evaluator.html
     takes an input of binary card representations returns an integer 1-7462"""
 
@@ -39,16 +40,32 @@ def evalFromBin(c:list):
 
     return ul.dict_unsuited_lookup[prime_product]
 
-def find_fast(u):
-    u = (u+0xe91aaa35) & 0xFFFFFFFF
-    u ^= u >> 16
-    u = (u+(u << 8)) & 0xFFFFFFFF
-    u ^= u >> 4
-    b  = (u >> 8) & 0x1ff
-    a  = (u + (u << 2)) >> 19
-    # & 0xFFFF because python
-    r  = (a ^ ev.hash_adjust[b]) & 0xFFFF
-    return r;
+def eval_five_card(c:list):
+    """Takes list of 5 card objects, returns the ranking of that hand"""
+    bin_hand = bin_from_list(c)
+    return eval_from_bin(bin_hand)
+
+def eval_seven_card(c:list):
+    """Takes list of 7 card objects, returns the ranking of the best hand"""
+
+    # note this can be made more efficient if neccessary i just cba rn
+
+    perms = set(itertools.permutations(c, 5))
+
+    best_ranking = 9999 # all rankings are less than 9999
+    for hand in perms:
+        bin_hand = bin_from_list(hand)
+        best_ranking = min(eval_from_bin(bin_hand), best_ranking)
+
+    return best_ranking
+        
+def bin_from_list(c:list):
+    output = []
+    for c in list:
+        output.append(c.bin)
+    return output
+
+
 
 # ==================================================================
 # |                     basic test cases                           |
@@ -56,7 +73,7 @@ def find_fast(u):
 
 # flush
 assert(
-    evalFromBin(
+    eval_from_bin(
         # xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
         [0b00001000_00000000_00011011_00100101, #ks
         0b00000000_00001000_00010011_00000111, #5s
@@ -68,7 +85,7 @@ assert(
 
 # straight
 assert(
-    evalFromBin(
+    eval_from_bin(
         # xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
         [0b00001000_00000000_00011011_00100101, #ks
         0b00000001_00000000_01001000_00010111, #10h
@@ -79,7 +96,7 @@ assert(
 )
 # 4 kings
 assert(
-    evalFromBin(
+    eval_from_bin(
         #  xxxAKQJT 98765432 CDHSrrrr xxPPPPPP
         [0b00001000_00000000_01001011_00100101, # kd
          0b00001000_00000000_10001011_00100101, # kc

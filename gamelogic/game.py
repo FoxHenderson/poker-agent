@@ -47,9 +47,11 @@ class Card:
         return (prime | rank | suit | bit)
 
 class Deck:
+
     def __init__(self):
         self.deck = self.__create_deck()
         self.size = len(self.deck)
+
     def __create_deck(self):
         deck = []
         #print("DECK: ", deck)
@@ -63,59 +65,50 @@ class Deck:
         self.size -= 1
         return card
 
-
 class Table:
     def __init__(self):
-        self.dealer = 0
+        self.dealer_id = 0
         self.deck = Deck()
-        self.flop = None
+        self.flop = []
         self.river = None
         self.turn = None
 
     def reveal_flop(self):
-        self.flop = self.deck.draw_card()
+        for _ in range(3):
+            self.flop.append(self.deck.draw_card())
+
     def reveal_river(self):
         self.river = self.deck.draw_card()
 
     def reveal_turn(self):
         self.turn = self.deck.draw_card()
 
+    def burn_card(self):
+        self.deck.draw_card(0)
 
-    def get_cards(self):
+    def get_board(self):
         return(self.flop, self.river, self.turn)
 
 
-class Players:
-    def __init__(self,ID, card1, card2):
+class Player:
+    def __init__(self, ID, card1, card2):
         self.ID = ID
         self.card1 = card1
         self.card2 = card2
-        self.money = Pot(50)
+        self.balance = 1000
+        # pre-flop, flop, river, turn
+        # actions of the form: f - fold, cx - call $x, rx - raise $x 
+        self.action_history = [[], [], [], []]
 
     def show_cards(self):
         print (" ",self.card1.show_card(), "\n ", self.card2.show_card())
 
-    def get_previous_bid():
-        return self.bid_history[-1]
-class Pot:
-    def __init__(self, initial_value=0):
-        self.value = initial_value
-
-    def add(self, amount_to_add):
-        self.value += amount_to_add
-
-    def remove(self, amount_to_add):
-        self.value -= amount_to_add
-    
-    def clear_pot(self):
-        self.value = 0
-
-
-
-
-
-
-
+    def get_previous_bid(self):
+        for i in range(3, -1, -1):
+            if len(self.action_history[i]) == 0:
+                continue
+            return self.action_history[i][-1]
+        return None    
 
 class Game:
     def __init__(self):
@@ -208,7 +201,7 @@ class Game:
     def display_cards(self):
         for p in range(0, len(self.players)-1):
 
-            print("PLAYER {p}:")
+            print(f"PLAYER {p}:")
             self.players[p].show_cards()
             print("\n")
 
