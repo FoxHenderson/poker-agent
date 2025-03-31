@@ -16,7 +16,7 @@ class Card:
         self.bin = format(self.bin, '#034b')
 
         # debug --------
-        print(self.suit, self.rank, self.bin)
+        #print(self.suit, self.rank, self.bin)
 
     def __Calculate_suit(self, ID):
         suits = {0:"Clubs", 1: "Diamonds", 2: "Hearts",3:"Spades"}
@@ -25,6 +25,9 @@ class Card:
     def __Calculate_rank(self, ID):
         rank = {1:"Two", 2:"Three",3:"Four",4:"Five",5:"Six",6:"Seven",7:"Eight",8:"Nine",9:"Ten",10:"Jack",11:"Queen",12:"King",13: "Ace", }
         return rank[((ID - (ID%4)) / 4)+1]
+
+    def show_card(self):
+        return f"{self.rank} of {self.suit}"
 
     # returns card as binary number
     #+--------+--------+--------+--------+
@@ -74,7 +77,7 @@ class Table:
     def reveal_river(self):
         self.river = self.deck.draw_card()
 
-    def reveal_rurn(self):
+    def reveal_turn(self):
         self.turn = self.deck.draw_card()
 
 
@@ -87,20 +90,23 @@ class Players:
         self.ID = ID
         self.card1 = card1
         self.card2 = card2
-        self.bid_history = []
+        self.money = Pot(50)
 
     def show_cards(self):
-        print (self.card1.rank, "of", self.card1.suit, "(", self.card1.bin, ")", "AND", self.card2.rank, "of", self.card2.suit, "(", self.card2.bin, ")")
+        print (" ",self.card1.show_card(), "\n ", self.card2.show_card())
 
     def get_previous_bid():
         return self.bid_history[-1]
 class Pot:
-    def __init__(self):
-        self.value = 0
+    def __init__(self, initial_value=0):
+        self.value = initial_value
 
     def add(self, amount_to_add):
         self.value += amount_to_add
 
+    def remove(self, amount_to_add):
+        self.value -= amount_to_add
+    
     def clear_pot(self):
         self.value = 0
 
@@ -117,16 +123,39 @@ class Game:
         self.players = self.deal_cards()
         self.pot = Pot()
         self.bigbid = self.players[0]
+        self.winner = False
 
 
-        self.start_game()
+        self.game_layout()
 
 
 
-    def start_game(self):
+    def game_layout(self):
         self.display_cards()
         self.bidding_round(self.bigbid)
+        if self.check_for_winner() == False:
+            self.table.reveal_flop()
+            print("FLOP:", self.table.get_cards()[0].show_card())
+            self.bidding_round(self.bigbid)
+            if self.check_for_winner() == False:
+                self.table.reveal_river()
+                print("RIVER:", self.table.get_cards()[1].show_card())
+                self.bidding_round(self.bigbid)
+                if self.check_for_winner() == False:
+                    self.table.reveal_turn()
+                    print("TURN", self.table.get_cards()[2].show_card())
 
+
+    def transfer_money(self, source, destination, amount):
+        source.remove(amount)
+        destination.add(amount)
+         
+
+    def check_for_winner(self):
+        print("PLAYERS:", self.players)
+        if len(self.players) == 1:
+            self.winner = self.players[0]
+            print(f"{self.winner.ID} WINS")
 
 
     def get_bid_amount(self):
@@ -137,24 +166,32 @@ class Game:
     def get_choice(self):
         return input("Bid or Fold or Increase (b, f, i)")
 
-
-
-    def bidding_round(self, current_bidder):
-        print(current_bidder.ID)
-        bid_amount=self.get_bid_amount()
-        self.pot.add(bid_amount)
-
+    def bidding_round(self, current_bidder, current_bid=0):
+        print(f"{current_bidder.ID}: £{current_bidder.money.value}")
+        valid = False
+        while not valid:
+            valid = True
+            bid_amount=self.get_bid_amount()
+            if bid_amount > current_bidder.money.value:
+                valid = False
+                print("You dont have enough money to place this bid")
+            if bid_amount <= current_bid:
+                valid = False
+                print("Bid price need to be larger than last bit")
+            
+        self.transfer_money(current_bidder.money, self.pot, bid_amount)
         for player in self.players:
                 if player != current_bidder:
-                    print(player.ID)
+                    print(f"{player.ID}\n Current:£{player.money.value}\n Money left after placing Bid: £{player.money.value - bid_amount}\n")
                     choice = self.get_choice()
                     if choice == "b":
-                        self.pot.add(bid_amount)
+                        self.transfer_money(player.money, self.pot, bid_amount)
                     elif choice == "f":
                         self.players.remove(player)
                         player.show_cards()
                     elif choice == "i":
-                        self.bidding_round(player)
+                        self.bidding_round(player, bid_amount)
+        print(f"Money in Pot: {self.pot.value}")
                     
             
         
