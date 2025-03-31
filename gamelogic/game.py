@@ -3,32 +3,32 @@ import random
 class Card:
     def __init__(self, ID):
         self.ID = ID
-        self.suit = self.__CalculateSuit(ID)
-        self.rank = self.__CalculateRank(ID)
-        print(self.suit, self.rank)
+        self.suit = self.__Calculate_suit(ID)
+        self.rank = self.__Calculate_rank(ID)
+        #print(self.suit, self.rank)
 
 
-    def __CalculateSuit(self, ID):
+    def __Calculate_suit(self, ID):
         suits = {0:"Clubs", 1: "Diamonds", 2: "Hearts",3:"Spades"}
         return suits[ID % 4]
 
-    def __CalculateRank(self, ID):
+    def __Calculate_rank(self, ID):
         rank = {1: "Ace", 2:"Two", 3:"Three",4:"Four",5:"Five",6:"Six",7:"Seven",8:"Eight",9:"Nine",10:"Ten",11:"Jack",12:"Queen",13:"King"}
         return rank[((ID - (ID%4)) / 4)+1]
 
 
 class Deck:
     def __init__(self):
-        self.deck = self.__createDeck()
+        self.deck = self.__create_deck()
         self.size = len(self.deck)
-    def __createDeck(self):
+    def __create_deck(self):
         deck = []
-        print("DECK: ", deck)
+        #print("DECK: ", deck)
         for i in range(0, 52):
             deck.append(Card(i))
         return deck
             
-    def drawCard(self):
+    def draw_card(self):
         card = random.choice(self.deck)
         self.deck.remove(card)
         self.size -= 1
@@ -44,17 +44,17 @@ class Table:
         self.turn = None
 
 
-    def revealFlop(self):
-        self.flop = self.deck.drawCard()
+    def reveal_flop(self):
+        self.flop = self.deck.draw_card()
 
-    def revealRiver(self):
-        self.river = self.deck.drawCard()
+    def reveal_river(self):
+        self.river = self.deck.draw_card()
 
-    def revealTurn(self):
-        self.turn = self.deck.drawCard()
+    def reveal_rurn(self):
+        self.turn = self.deck.draw_card()
 
 
-    def showCentreCards(self):
+    def get_cards(self):
         return(self.flop, self.river, self.turn)
 
 
@@ -63,7 +63,7 @@ class PlayerHoles:
         self.card1 = card1
         self.card2 = card2
 
-    def showCards(self):
+    def show_cards(self):
         return (self.card1.rank + self.card1.suit), (self.card2.rank + self.card2.suit)
         
 
@@ -71,14 +71,22 @@ class PlayerHoles:
 class Game:
     def __init__(self):
         self.table = Table()
-        self.players = self.dealCards()
+        self.players = self.deal_cards()
 
-    def dealCards(self):
+    def deal_cards(self):
         players_num = 2
         player_holes = []
         for i in range(0, players_num):
-            p = PlayerHoles(self.table.deck.drawCard(), self.table.deck.drawCard())
-            p.showCards()
+            p = PlayerHoles(self.table.deck.draw_card(), self.table.deck.draw_card())
+            p.show_cards()
             player_holes.append(p)
         return player_holes
-        
+
+
+
+def __main__():
+    return Game()
+
+
+
+
