@@ -1,3 +1,5 @@
+BIN_PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+BIN_SUITS = [1, 2, 4, 8]
 
 class Card:
     def __init__(self, ID):
