@@ -1,24 +1,59 @@
 from player import Player
 from actions import Action
+import tkinter as tk
+import asyncio
 import random
-
-class 
 
 class Command_Line_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)
 
-    def action(self, last_action):
-        super().action(last_action)
-
-        # TODO FOX
-        while True:
-            ...
+    def action(self, last_action, amount):
+        super().action(last_action, amount)
 
     def get_available_actions(self, last_action, amount):
         result = super().get_available_actions(last_action, amount)
         print(result)
         return result
+
+
+
+class Person_Player(Player):
+    def __init__(self, ID:int, name:str):
+        super().__init__(ID, name)
+        self.current_action = None
+
+    async def action(self, last_action):
+        await self.get_action_from_user()
+        print("GETTING ACTION:", action)
+
+    async def async_action(choice):
+        """
+        Waits for a variable to change and returns its value using asyncio.
+        """
+
+        future = asyncio.Future()
+
+        def set_future(value):
+            future.set_result(value)
+
+        def on_choice_change(*args):
+            set_future(choice.get())
+            root.quit()
+
+        choice.trace("w", on_choice_change)
+        root.mainloop()
+
+        return await future
+
+        
+
+    def get_available_actions(self, last_action):
+        result = super().get_available_actions(last_action)
+        print(result)
+        return result
+
+    
 
 class Random_Player(Player):
     def __init__(self, ID:int, name:str):

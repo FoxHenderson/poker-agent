@@ -30,12 +30,15 @@ class Game:
         # index of dealer button. (0 or 1)
         self.dealer_button = 0
 
+
+        self.game_loop()
+
     def game_loop(self):
         self.deal_cards()
         # update GUI with cards
 
         # ========= pre-flop =========
-        winner = self.betting_loop()
+        winner = self.betting_loop(0)
         if winner: # game is over
             winner.stack += self.pot
             # round over
@@ -45,7 +48,7 @@ class Game:
         # ========= flop =========
         self.deal_flop()
 
-        winner = self.betting_loop()
+        winner = self.betting_loop(1)
         if winner: # game is over
             winner.stack += self.pot
             # round over
@@ -55,7 +58,7 @@ class Game:
         # ========= turn =========
         self.deal_turn()
 
-        winner = self.betting_loop()
+        winner = self.betting_loop(0)
         if winner: # game is over
             winner.stack += self.pot
             # round over
@@ -65,7 +68,7 @@ class Game:
         # ========= river =========
         self.deal_river()
 
-        winner = self.betting_loop()
+        winner = self.betting_loop(1)
         if winner: # game is over
             winner.stack += self.pot
             # round over
@@ -75,7 +78,7 @@ class Game:
         # determine winnner
         self.determine_winner()
 
-    def betting_loop(self, to_act_index:int, state:int, current_bet=0):
+    def betting_loop(self, to_act_index:int, current_bet=0):
         """returns False if game should continue else returns the winner (player obj)"""
 
         last_action = (None, current_bet)
@@ -90,7 +93,7 @@ class Game:
             hero_player = self.players[to_act_index]
             villain_player = self.players[(to_act_index + 1) % 2]
 
-            current_action, current_amount  = hero_player.get_action(last_action)
+            current_action, current_amount  = hero_player.action(last_action)
 
             if current_action == Action.FOLD: # terminating action
                 return villain_player
@@ -200,10 +203,11 @@ class CL_Game(Game):
         return super().game_loop()
 
 # Testing
-
+"""
 user = Command_Line_Player(0, "J.W.M")
 computer = Random_Player(1, "Computer")
 
 test_game = CL_Game(user, computer)
 while (user.stack > 0) and (computer.stack > 0):
     test_game.game_loop() 
+"""

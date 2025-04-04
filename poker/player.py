@@ -48,12 +48,14 @@ class Player:
         possible_actions = [Action.FOLD]
         match last_act:
             case Action.FOLD:
-                # case shouldn't be achieved 
+                # case shouldn't be achieved
+                return []
                 raise Exception("Get actions from FOLD")
             case Action.CHECK:
                 return [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
             case Action.CALL:
                 # case shouldn't be achieved.
+                return []
                 raise Exception("Get actions from CALL")
             case Action.BET:
                 possible_actions.append(Action.ALL_IN)
