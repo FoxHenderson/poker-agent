@@ -19,11 +19,14 @@ class Card:
         return suits[ID % 4]
 
     def __Calculate_rank(self, ID):
-        rank = {1:"Two", 2:"Three",3:"Four",4:"Five",5:"Six",6:"Seven",7:"Eight",8:"Nine",9:"Ten",10:"Jack",11:"Queen",12:"King",13: "Ace", }
+        rank = {1:"2", 2:"3",3:"4",4:"5",5:"6",6:"7",7:"8",8:"9",9:"10",10:"Jack",11:"Queen",12:"King",13: "Ace", }
         return rank[((ID - (ID%4)) / 4)+1]
 
     def show_card(self):
         return f"{self.rank} of {self.suit}"
+    
+    def card_img_id(self):
+        return self.rank + "_" + "of" + self.suit.lower()
 
     # returns card as binary number
     #+--------+--------+--------+--------+

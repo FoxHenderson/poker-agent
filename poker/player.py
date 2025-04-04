@@ -1,4 +1,7 @@
-from game import Action
+from enum import Enum
+from actions import Action
+
+
 
 class Player:
     def __init__(self, ID:int, name:str):
