@@ -2,8 +2,6 @@ from player import Player
 from actions import Action
 import random
 
-class 
-
 class Command_Line_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)

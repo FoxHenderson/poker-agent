@@ -30,55 +30,71 @@ class Game:
         # index of dealer button. (0 or 1)
         self.dealer_button = 0
 
+        # pre-flop = 0, flop = 1, turn = 2, river = 3
+        self.game_state = 0
+
     def game_loop(self):
         self.deal_cards()
-        # update GUI with cards
 
         # ========= pre-flop =========
-        winner = self.betting_loop()
+        winner = self.betting_loop(self.dealer_button, self.game_state)
         if winner: # game is over
             winner.stack += self.pot
             # round over
             self.reset()
         self.end_round()
+        self.game_state += 1
         
         # ========= flop =========
         self.deal_flop()
 
-        winner = self.betting_loop()
+        winner = self.betting_loop((self.dealer_button + 1) % 2, self.game_state)
         if winner: # game is over
             winner.stack += self.pot
             # round over
             self.reset()
         self.end_round()
+        self.game_state += 1
 
         # ========= turn =========
         self.deal_turn()
 
-        winner = self.betting_loop()
+        winner = self.betting_loop((self.dealer_button + 1) % 2, self.game_state)
         if winner: # game is over
             winner.stack += self.pot
             # round over
             self.reset()
         self.end_round()
+        self.game_state += 1
 
         # ========= river =========
         self.deal_river()
 
-        winner = self.betting_loop()
+        winner = self.betting_loop((self.dealer_button + 1) % 2, self.game_state)
         if winner: # game is over
             winner.stack += self.pot
             # round over
             self.reset()
         self.end_round()
+        self.game_state += 1
 
         # determine winnner
         self.determine_winner()
 
-    def betting_loop(self, to_act_index:int, state:int, current_bet=0):
+    def betting_loop(self, to_act_index:int, state:int):
         """returns False if game should continue else returns the winner (player obj)"""
 
-        last_action = (None, current_bet)
+        last_action = (None, 0)
+
+        # handle blinds
+        if self.game_state == 0:
+            self.players[self.dealer_button].bet = self.small_blind
+            self.players[self.dealer_button].stack -= self.small_blind
+
+            self.players[(self.dealer_button + 1) % 2].bet = self.big_blind
+            self.players[(self.dealer_button + 1) % 2].stack -= self.big_blind
+
+            last_action = (Action.RAISE, self.big_blind)
 
         # if a player is all in skip the betting round
         for player in self.players:
@@ -90,7 +106,7 @@ class Game:
             hero_player = self.players[to_act_index]
             villain_player = self.players[(to_act_index + 1) % 2]
 
-            current_action, current_amount  = hero_player.get_action(last_action)
+            current_action, current_amount  = hero_player.action(last_action)
 
             if current_action == Action.FOLD: # terminating action
                 return villain_player
@@ -111,7 +127,7 @@ class Game:
                 # if the last bet was more than our stack (terminating case)
                 if last_bet_amt > current_amount:
                     difference = last_bet_amt - current_amount
-                    # credit villain the difference=
+                    # credit villain the difference
                     villain_player += difference
                     self.pot -= difference
 
@@ -183,7 +199,23 @@ class Game:
             player.bet = 0
 
     def reset(self):
-        ...
+        # store action history somewhere if needed?
+
+        # TODO FOX
+        for player in self.players:
+            player.action_history = [[], [], [], []]
+            player.bet = 0
+            player.cards = []
+            player.folded = False
+            player.all_in = False
+        
+        self.board = []
+        self.deck = Deck()
+        self.deck.shuffle_deck()
+        self.pot = 0
+
+        # index of dealer button. (0 or 1)
+        self.dealer_button = (self.dealer_button + 1) % 2
 
 # used to interface with the GUI
 class GUI_Game(Game):

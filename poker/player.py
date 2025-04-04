@@ -38,7 +38,7 @@ class Player:
         valid_actions = self.get_available_actions(last_action)
         ...
 
-    def get_available_actions(self, last_action:tuple[Action, int]):
+    def get_available_actions(self, last_action:tuple[Action, int]) -> list:
         last_act = last_action[0]
         last_amt = last_action[1]
 
