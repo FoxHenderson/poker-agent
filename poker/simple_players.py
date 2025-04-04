@@ -1,5 +1,5 @@
 from player import Player
-from game import Action
+from actions import Action
 import random
 
 class 

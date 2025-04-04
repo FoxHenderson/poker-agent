@@ -1,6 +1,5 @@
 import random
 #import numpy as np
-from enum import Enum
 
 
 from card import Card
@@ -8,14 +7,9 @@ from evaluation.handeval import eval_seven_card
 from deck import Deck
 from player import Player
 from simple_players import Random_Player, Command_Line_Player
+from actions import Action
 
-class Action(Enum):
-    FOLD = 1,
-    CHECK = 2,
-    CALL = 3,
-    BET = 4,
-    RAISE = 5,
-    ALL_IN = 6,
+
 
 class Game:
     def __init__(self, player1:Player, player2:Player):
@@ -117,7 +111,7 @@ class Game:
                 # if the last bet was more than our stack (terminating case)
                 if last_bet_amt > current_amount:
                     difference = last_bet_amt - current_amount
-                    # credit villain the difference
+                    # credit villain the difference=
                     villain_player += difference
                     self.pot -= difference
 
