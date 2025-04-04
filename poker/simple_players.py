@@ -2,18 +2,23 @@ from player import Player
 from game import Action
 import random
 
+class 
+
 class Command_Line_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)
 
-    def action(self, last_action, amount):
-        super().action(last_action, amount)
+    def action(self, last_action):
+        super().action(last_action)
+
+        # TODO FOX
+        while True:
+            ...
 
     def get_available_actions(self, last_action, amount):
         result = super().get_available_actions(last_action, amount)
         print(result)
         return result
-
 
 class Random_Player(Player):
     def __init__(self, ID:int, name:str):
