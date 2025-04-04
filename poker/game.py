@@ -1,9 +1,10 @@
 import random
-import numpy as np
+#import numpy as np
 from enum import Enum
 
-from evaluation.handeval import eval_seven_card
+
 from card import Card
+from evaluation.handeval import eval_seven_card
 from deck import Deck
 from player import Player
 from simple_players import Random_Player, Command_Line_Player

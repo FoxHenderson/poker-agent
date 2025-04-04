@@ -1,5 +1,5 @@
-import evallookup as ev
-import unsuited_lookup as ul
+from evaluation import evallookup as ev
+from evaluation import unsuited_lookup as ul
 import numpy as np
 import itertools
 #from gamelogic.game import Card
