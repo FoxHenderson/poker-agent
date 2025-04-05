@@ -95,6 +95,8 @@ class Game:
             self.players[(self.dealer_button + 1) % 2].bet = self.big_blind
             self.players[(self.dealer_button + 1) % 2].stack -= self.big_blind
 
+            self.pot += self.big_blind + self.small_blind
+
             last_action = (Action.RAISE, self.big_blind)
 
         # if a player is all in skip the betting round
@@ -107,22 +109,27 @@ class Game:
             hero_player = self.players[to_act_index]
             villain_player = self.players[(to_act_index + 1) % 2]
 
-            current_action, current_amount  = hero_player.action(last_action)
+            call_amount = villain_player.bet - hero_player.bet
+
+            current_action, current_amount = hero_player.action(last_action, call_amount)
 
             if current_action == Action.FOLD: # terminating action
                 return villain_player
             elif current_action == Action.CHECK:
-                pass
+                if last_action[0] == Action.CHECK: # terminating action (checks round)
+                    return False
             elif current_action == Action.CALL: # terminating action
-                self.pot += current_amount
-                hero_player.stack -= current_amount
+                self.pot += call_amount
+                hero_player.stack -= call_amount
                 return False
             elif current_action == Action.BET:
                 self.pot += current_amount
-                hero_player.stack -= current_amount
+                hero_player.bet += current_amount
+                hero_player.stack -= (current_amount - self.bet)
             elif current_action == Action.RAISE:
                 self.pot += current_amount
                 hero_player.stack -= current_amount
+                hero_player.bet += current_amount
             elif current_action == Action.ALL_IN:
                 hero_player.all_in = True
                 last_bet_amt = last_action[1]
@@ -134,11 +141,13 @@ class Game:
                     self.pot -= difference
 
                     self.pot += current_amount
+                    hero_player.bet += current_amount
                     hero_player.stack -= current_amount
 
                     return False
                 # == case is coverered in selection logic (converted to call)
                 # < case, continue betting as normal 
+                hero_player.bet += current_amount
                 self.pot += current_amount
                 hero_player.stack -= current_amount
 
@@ -165,7 +174,7 @@ class Game:
         if hand_strength[0] == hand_strength[1]:
             self.resolve_draw()
             return
-        elif hand_strength[0] > hand_strength[1]:
+        elif hand_strength[0] < hand_strength[1]:
             winner = self.players[0]
         else:
             winner = self.players[1]
@@ -298,7 +307,6 @@ class CL_Game(Game):
         # determine winnner
         self.determine_winner()
 
-
     def betting_loop(self, to_act_index:int):
         """returns False if game should continue else returns the winner (player obj)"""
 
@@ -328,7 +336,9 @@ class CL_Game(Game):
             hero_player = self.players[to_act_index]
             villain_player = self.players[(to_act_index + 1) % 2]
 
-            current_action, current_amount = hero_player.action(last_action)
+            call_amount = villain_player.bet - hero_player.bet
+
+            current_action, current_amount = hero_player.action(last_action, call_amount)
 
             print(f"{hero_player.name} {current_action} ({current_amount})")
 
@@ -338,15 +348,17 @@ class CL_Game(Game):
                 if last_action[0] == Action.CHECK: # terminating action (checks round)
                     return False
             elif current_action == Action.CALL: # terminating action
-                self.pot += current_amount
-                hero_player.stack -= current_amount
+                self.pot += call_amount
+                hero_player.stack -= call_amount
                 return False
             elif current_action == Action.BET:
                 self.pot += current_amount
-                hero_player.stack -= current_amount
+                hero_player.bet += current_amount
+                hero_player.stack -= (current_amount - self.bet)
             elif current_action == Action.RAISE:
                 self.pot += current_amount
                 hero_player.stack -= current_amount
+                hero_player.bet += current_amount
             elif current_action == Action.ALL_IN:
                 hero_player.all_in = True
                 last_bet_amt = last_action[1]
@@ -358,11 +370,13 @@ class CL_Game(Game):
                     self.pot -= difference
 
                     self.pot += current_amount
+                    hero_player.bet += current_amount
                     hero_player.stack -= current_amount
 
                     return False
                 # == case is coverered in selection logic (converted to call)
                 # < case, continue betting as normal 
+                hero_player.bet += current_amount
                 self.pot += current_amount
                 hero_player.stack -= current_amount
 
@@ -408,7 +422,8 @@ class CL_Game(Game):
         if hand_strength[0] == hand_strength[1]:
             self.resolve_draw()
             return
-        elif hand_strength[0] > hand_strength[1]:
+        # recall low score is better!
+        elif hand_strength[0] < hand_strength[1]:
             winner = self.players[0]
         else:
             winner = self.players[1]

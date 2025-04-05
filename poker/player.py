@@ -34,7 +34,7 @@ class Player:
             return self.action_history[state][-1]
         return None
 
-    def action(self, last_action:tuple[Action, int]):
+    def action(self, last_action:tuple[Action, int], call_amt):
         valid_actions = self.get_available_actions(last_action)
         ...
 
