@@ -59,10 +59,10 @@ def eval_seven_card(c:list):
 
     return best_ranking
         
-def bin_from_list(c:list):
+def bin_from_list(card_list:list):
     output = []
-    for c in list:
-        output.append(c.bin)
+    for card in card_list:
+        output.append(card.bin)
     return output
 
 

@@ -2,14 +2,22 @@ BIN_PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
 BIN_SUITS = [1, 2, 4, 8]
 
 class Card:
+    # returns card as binary number
+    #+--------+--------+--------+--------+
+    #|xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
+    #+--------+--------+--------+--------+
+    #p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
+    #r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
+    #cdhs = suit of card (bit turned on based on suit of card)
+    #b = bit turned on depending on rank of card
+
     def __init__(self, ID):
         # ID unique integer from 1 - 52
         self.ID = ID
         self.suit = self.__Calculate_suit(ID)
         self.rank = self.__Calculate_rank(ID)
         # binary representation of the card, used for the agents internal representation of the game
-        self.bin = self.__CalculateBin(ID)
-        self.bin = format(self.bin, '#034b')
+        self.bin = int(self.__CalculateBin(ID))
 
         # debug --------
         #print(self.suit, self.rank, self.bin)
@@ -25,17 +33,15 @@ class Card:
     def show_card(self):
         return f"{self.rank} of {self.suit}"
     
+    def __str__(self):
+        return self.show_card()
+    
+    def __repr__(self):
+        return f"{self.rank} of {self.suit}"
+        # return f"{self.rank} of {self.suit} : {self.bin}"
+    
     def card_img_id(self):
         return self.rank + "_" + "of" + self.suit.lower()
-
-    # returns card as binary number
-    #+--------+--------+--------+--------+
-    #|xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
-    #+--------+--------+--------+--------+
-    #p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
-    #r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
-    #cdhs = suit of card (bit turned on based on suit of card)
-    #b = bit turned on depending on rank of card
 
     def __CalculateBin(self, ID):
         # sum maffs
