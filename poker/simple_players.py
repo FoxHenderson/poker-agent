@@ -79,8 +79,6 @@ class Random_Player(Player):
     def action(self, last_action:tuple[Action, int], call_amt) -> list[Action]:
         possible_actions = self.get_available_actions(last_action)
 
-        print(possible_actions)
-
         new_action = random.choice(possible_actions)
         amount = 0
 

@@ -42,8 +42,6 @@ class Player:
         last_act = last_action[0]
         last_amt = last_action[1]
 
-        print(last_act)
-
         if last_act is None:
             return [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
 
