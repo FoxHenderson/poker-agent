@@ -11,6 +11,7 @@ class Player:
 
         self.stack = 1000
         self.bet = 0 # amount bet in the current round
+        self.previous_bet = 0
 
 
         self.valid_actions = []
@@ -76,4 +77,5 @@ class Player:
                     self.valid_actions.append(Action.RAISE)
             case Action.ALL_IN:
                 self.valid_actions.append(Action.CALL)
+            
         return self.valid_actions

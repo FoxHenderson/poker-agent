@@ -24,6 +24,7 @@ class GUI():
         self.show_opponent_cards = tk.BooleanVar()  # Create a BooleanVar
         self.show_opponent_cards.set(False)
         self.refresh_page()
+    
         
 
 
@@ -39,7 +40,7 @@ class GUI():
         if self.game.to_act_index == 0:
             print("Check button")
             self.game.check(self.player1)
-            m = self.computer.make_move(self.game)
+            self.computer.make_move(self.game)
             self.refresh_page()
 
             
@@ -81,12 +82,12 @@ class GUI():
                 try:
                     raise_amount = int(raise_amount_entry.get())
                     valid = self.game.raise_bet(self.player1, raise_amount)
+                    print("VALID?:", valid)
                     if valid == False:
                         print("Invalid bet amount.")
                         tk.Label(self.input_frame, text="Invalid Bet amount")
                         confirm_button.pack(side=tk.LEFT)
                     else:
-                        self.game.raise_bet(self.player1, raise_amount)
                         self.computer.make_move(self.game)
                         self.refresh_page()
                 except ValueError:
@@ -99,7 +100,6 @@ class GUI():
         if self.game.to_act_index == 0:
             print("All In button clicked")
             self.game.all_in(self.player1)
-            self.available_actions = self.player1.get_available_actions((Action.ALL_IN, 0))
             self.refresh_page()
 
 
@@ -137,7 +137,8 @@ class GUI():
           ele.destroy()
 
 
-    def refresh_page(self):
+    def refresh_page(self):           
+        
         self.clear_page()
        
         # Player Area

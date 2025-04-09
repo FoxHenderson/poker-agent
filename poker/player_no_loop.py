@@ -50,8 +50,7 @@ class Player:
                 self.valid_actions =  [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
                 return self.valid_actions
             case Action.CALL:
-                # case shouldn't be achieved.
-                self.valid_actions = []
+                self.valid_actions = [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
                 return self.valid_actions
             case Action.BET:
                 self.valid_actions.append(Action.ALL_IN)
