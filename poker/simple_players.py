@@ -45,8 +45,8 @@ class Person_Player(Player):
 
         
 
-    def get_available_actions(self, last_action):
-        result = super().get_available_actions(last_action)
+    def update_available_actions(self, last_action):
+        result = super().update_available_actions(last_action)
         print(result)
         return result
 
@@ -60,9 +60,10 @@ class Random_Player(Player):
 
         opposition_player = game.get_opponent_player(self)
         last_action = opposition_player.action_history[-1]
-        possible_actions = self.get_available_actions(last_action)
+        
 
-        new_action = random.choice(possible_actions)
+        new_action = random.choice(self.valid_actions)
+        print("ACTION:", new_action)
         amount = 0
 
         if new_action == Action.RAISE:
@@ -82,6 +83,9 @@ class Random_Player(Player):
 
         elif new_action == Action.ALL_IN:
             game.all_in(self)
+
+        elif new_action == Action.FOLD:
+            game.fold(self)
 
         print("computer:", new_action, amount)
         return (new_action, amount)

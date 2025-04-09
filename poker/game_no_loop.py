@@ -36,15 +36,22 @@ class Game:
         self.dealer_button = 0
 
         # pre-flop = 0, flop = 1, turn = 2, river = 3
-        self.game_state = -1
+        self.game_state = 0
         self.loser = False
+        self.winner = False
         self.game_log = "Welcome to Poker!"
+
+
+
+        self.done_flop = False
+        self.done_turn = False
+        self.done_river = False
 
         """ACTION ASSOCIATED ATTRIBUTES"""
         self.checkstate = 0 # 0 is no-body has checked, 1 is when one player has checked, 2 is when both players choose to check
         self.previous_bet_amount = 0
         self.to_act_index = 0 # DETERMINES WHAT PLAYERS TURN IT IS
-
+        self.round_name = ""
 
         self.deal_cards()
 
@@ -69,6 +76,7 @@ class Game:
         """CHECK FOR WINNER"""
         if self.loser != False:
             print(get_opponent_player(self.loser).name, " WINS")
+            self.winner = get_opponent_player(self.loser)
             return True
 
     def switch_player(self):
@@ -80,37 +88,53 @@ class Game:
             print("PREFLOP")
             self.round_name = "Pre-Flop"
         elif self.game_state == 1:
+            print("FLOP")
             self.deal_flop()
             self.round_name = "Flop"
         elif self.game_state == 2:
+            print("TURN")
             self.deal_turn()
             self.round_name = "Turn"
         elif self.game_state == 3:
+            print("FIVER")
             self.deal_river()
             self.round_name = "River"
         else:
             print("GAME OVER")
+        return self.round_name
 
     def next_round(self):
         for player in self.players:
             player.bet = 0
-        
+        if self.winner: # game is over
+            winner.stack += self.pot
+            return
         self.game_state +=1
+        print("self.game_state:", self.game_state)
         return self.get_round_name()
             
 
 
     def fold(self, player):
+        other_player = self.get_opponent_player(player)
+        
         print(player.name, "loses")
         player.folded = True
-        self.loser = player
+        self.winner = other_player
+        self.winner.stack += self.pot
+        self.pot = 0
         player.action_history.append((Action.FOLD, 0))
 
+
+        other_player.update_available_actions((Action.FOLD, 0))
+        player.update_available_actions((Action.FOLD, 0))
+        
         self.update_game_log(f"{player.name} Folded")
         return True
 
     
-    def check(self, player):    
+    def check(self, player):
+        
         self.checkstate+=1
         if self.checkstate == 2:
             self.checkstate = 0
@@ -118,6 +142,7 @@ class Game:
             next_round()
             player.action_history.append((Action.CHECK, 0))
             self.update_game_log(f"{player.name} Checked")
+            self.next_round()
             return True
         else:
             return False
@@ -127,8 +152,14 @@ class Game:
         call_amount = other_player.bet - player.bet
         self.pot += call_amount
         player.stack -= call_amount
+
+        
         player.action_history.append((Action.CALL, call_amount))
+        other_player.update_available_actions((Action.CALL, call_amount))
+        
         self.update_game_log(f"{player.name} Called (added {call_amount})")
+
+        self.next_round()
         return True
 
     def bet(self, player, amount_to_bet):
@@ -136,8 +167,9 @@ class Game:
         self.pot += amount_to_bet
         player.bet += amount_to_bet
         player.stack -= amount_to_bet # PLEASE REVIEW THIS LINE TO SEE IF IT IS DOING THE CORRECT THING
+
         player.action_history.append((Action.BET, amount_to_bet))
-        #other_player.get
+        other_player.update_available_actions((Action.BET, amount_to_bet))
         self.update_game_log(f"{player.name} Betted {amount_to_bet}")
 
     def raise_bet(self, player, amount_to_raise):
@@ -149,8 +181,9 @@ class Game:
         player.stack -= amount_to_raise
         player.bet += amount_to_raise
         player.action_history.append((Action.RAISE, amount_to_raise))
+        other_player.update_available_actions((Action.RAISE, amount_to_raise))
         self.update_game_log(f"{player.name} Raised ({amount_to_raise})")
-        return True
+
 
     def all_in(self, player):
         """NEED TO FINALISE HOW THIS FUNCTION WORKS - DISCUSS WITH FOX"""
@@ -170,6 +203,7 @@ class Game:
         self.board = self.board[3:]
 
     def deal_turn(self):
+        print("TURNING")
         self.deck.burn_card()
         self.board.append(self.deck.draw_card())
         self.board = self.board[1:]
@@ -184,7 +218,6 @@ class Game:
 
 
     def pre_flop(self):
-
         self.bet(self.players[self.dealer_button], self.small_blind)
         self.raise_bet(self.players[(self.dealer_button + 1) % 2], self.big_blind)
 

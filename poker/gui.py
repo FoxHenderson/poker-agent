@@ -16,18 +16,16 @@ class GUI():
         self.root.title("Poker Game")
         self.player1 = simple_players.Person_Player(1, "player1")
         self.computer = simple_players.Random_Player(2, "Computer")
-        self.available_actions = [Action.FOLD, Action.CHECK, Action.CALL, Action.BET, Action.RAISE, Action.ALL_IN]
+        self.all_actions = [Action.FOLD, Action.CHECK, Action.CALL, Action.BET, Action.RAISE, Action.ALL_IN]
         self.game = Game(self.player1, self.computer)
         player_cards = self.game.players[0].cards
-
         self.game.pre_flop()
+        self.available_actions = self.player1.valid_actions
+        self.show_opponent_cards = tk.BooleanVar()  # Create a BooleanVar
+        self.show_opponent_cards.set(False)
         self.refresh_page()
-
-
-
-    def attempt_move_to_next_round():
-        ""
         
+
 
     
     def fold(self):
@@ -35,20 +33,13 @@ class GUI():
         if self.game.to_act_index == 0:
             print("Fold button clicked!")
             self.game.fold(self.player1)
-            self.valid_actions_for_opponent = self.player1.get_available_actions((Action.FOLD, 0))
-
-            self.player1.action_history.append((Action.FOLD, 0))
-            m = self.computer.make_move(self.game)
-
             self.refresh_page()
     def check(self):
         # Handle check action
         if self.game.to_act_index == 0:
             print("Check button")
             self.game.check(self.player1)
-
             m = self.computer.make_move(self.game)
-            self.available_actions = self.player1.get_available_actions(m)            
             self.refresh_page()
 
             
@@ -56,32 +47,28 @@ class GUI():
         # Handle bet action
         if self.game.to_act_index == 0:
             print("Bet button clicked!")
-
             bet_amount_entry = tk.Entry(self.input_frame)
             bet_amount_entry.pack(side=tk.LEFT)
-
             def handle_bet():
                 try:
                     bet_amount = int(bet_amount_entry.get())
                     self.game.bet(self.player1, bet_amount)
-
-                    self.player1.action_history.append((Action.BET, bet_amount))
-                    m = self.computer.make_move(self.game)
-                    self.available_actions = self.player1.get_available_actions(m)
-                    
+                    self.computer.make_move(self.game)                    
                     self.refresh_page()
                 except :
                     print("Invalid bet amount.")
 
             confirm_button = tk.Button(self.input_frame, text="Confirm Bet", command=handle_bet)
             confirm_button.pack(side=tk.LEFT)
+            
     def call(self):
         # Handle call action
         if self.game.to_act_index == 0:
             print("Call button clicked!")
             self.game.call(self.player1)
-            self.available_actions = self.player1.get_available_actions((Action.CALL, 0))
+            self.computer.make_move(self.game)
             self.refresh_page()
+            
     def raise_bet(self):
         # Handle raise action
         if self.game.to_act_index == 0:
@@ -99,12 +86,15 @@ class GUI():
                         tk.Label(self.input_frame, text="Invalid Bet amount")
                         confirm_button.pack(side=tk.LEFT)
                     else:
-                        self.available_actions = self.player1.get_available_actions((Action.RAISE, raise_amount))
+                        self.game.raise_bet(self.player1, raise_amount)
+                        self.computer.make_move(self.game)
                         self.refresh_page()
                 except ValueError:
                     print("Invalid bet amount.")
             confirm_button = tk.Button(self.input_frame, text="Confirm Raise", command=handle_raise)
             confirm_button.pack(side=tk.LEFT)
+
+
     def all_in(self):
         if self.game.to_act_index == 0:
             print("All In button clicked")
@@ -149,7 +139,7 @@ class GUI():
 
     def refresh_page(self):
         self.clear_page()
-        round_name = self.game.next_round()
+       
         # Player Area
         player_frame = ttk.LabelFrame(self.root, text="Your Hand")
         player_frame.pack(pady=10)
@@ -175,33 +165,33 @@ class GUI():
 
         fold_button = ttk.Button(action_frame, text="Fold", command=self.fold)
         fold_button.pack(side=tk.LEFT)
-        if Action.FOLD not in self.available_actions:
+        if Action.FOLD not in self.player1.valid_actions:
             fold_button["state"] = "disabled"
 
         check_button = ttk.Button(action_frame, text="Check", command=self.check)
         check_button.pack(side=tk.LEFT)
-        if Action.CHECK not in self.available_actions:
+        if Action.CHECK not in self.player1.valid_actions:
             check_button["state"] = "disabled"
 
         call_button = ttk.Button(action_frame, text="Call", command=self.call)
         call_button.pack(side=tk.LEFT)
-        if Action.CALL not in self.available_actions:
+        if Action.CALL not in self.player1.valid_actions:
             call_button["state"] = "disabled"
 
         bet_button = ttk.Button(action_frame, text="Bet", command=self.bet)
         bet_button.pack(side=tk.LEFT)
 
-        if Action.BET not in self.available_actions:
+        if Action.BET not in self.player1.valid_actions:
             bet_button["state"] = "disabled"
 
         raise_button = ttk.Button(action_frame, text="Raise", command=self.raise_bet)
         raise_button.pack(side=tk.LEFT)
-        if Action.RAISE not in self.available_actions:
+        if Action.RAISE not in self.player1.valid_actions:
             raise_button["state"] = "disabled"
 
         all_in_button = ttk.Button(action_frame, text="All In", command=self.all_in)
         all_in_button.pack(side=tk.LEFT)
-        if Action.ALL_IN not in self.available_actions:
+        if Action.ALL_IN not in self.player1.valid_actions:
             all_in_button["state"] = "disabled"
 
         # Community Cards
@@ -214,10 +204,7 @@ class GUI():
         self.display_cards(community_frame, middle_cards)
         middle_cards.reverse()
         #Flop Cards
-        
 
-
-        
 
         # Pot
         pot_frame = ttk.LabelFrame(self.root, text="Pot")
@@ -233,12 +220,55 @@ class GUI():
         message_label = ttk.Label(message_frame, text=f"{self.game.game_log}")
         message_label.pack()
 
-        # Opponents (Simplified)
-        opponents_frame = ttk.LabelFrame(self.root, text="Opponents")
-        opponents_frame.pack(pady=10)
+        # Opponents 
+        self.opponents_frame = ttk.LabelFrame(self.root, text="Opponents")
+        self.opponents_frame.pack(pady=10)
 
-        opponent1_label = ttk.Label(opponents_frame, text=f"Computer: {self.computer.stack} chips")
+        opponent1_label = ttk.Label(self.opponents_frame, text=f"Computer: {self.computer.stack} chips")
         opponent1_label.pack()
+
+        #Opponents cards
+
+        opponent_cards_label = ttk.Label(self.opponents_frame, text=f"Cards:")
+        opponent_cards_label.pack()
+
+
+
+        checkbox_frame = ttk.Frame(self.opponents_frame)  # Frame for checkbox and label
+        checkbox_frame.pack()
+
+        checkbox = ttk.Checkbutton(checkbox_frame, text="Show Opponent Cards", variable=self.show_opponent_cards, command=self.update_opponent_cards_display)
+        checkbox.pack()
+
+        self.opponent_cards_label = ttk.Label(self.opponents_frame, text="Cards:")  # Store as instance variable
+        self.opponent_cards_label.pack(side=tk.LEFT)
+
+        self.update_opponent_cards_display()  # Initial display
+
+
+    def update_opponent_cards_display(self):
+        if self.show_opponent_cards.get():
+            self.opponent_cards_label.destroy()
+            self.opponent_cards_label = ttk.Label(self.opponents_frame, text="Cards:")
+            opponent_cards = self.game.players[1].cards
+            self.display_cards(self.opponent_cards_label, opponent_cards)
+            self.opponent_cards_label.pack()
+        else:
+            # Clear the opponent cards display
+            self.opponent_cards_label.destroy()
+            self.opponent_cards_label = ttk.Label(self.opponents_frame, text="Cards:")
+            opponent_cards = [None, None]
+            self.display_cards(self.opponent_cards_label, opponent_cards)
+            self.opponent_cards_label.pack()
+
+
+
+
+
+
+
+
+
 
         self.root.mainloop()
 

@@ -13,6 +13,7 @@ class Player:
         self.bet = 0 # amount bet in the current round
 
 
+        self.valid_actions = []
 
         self.folded = False
         self.all_in = False
@@ -42,33 +43,37 @@ class Player:
         valid_actions = self.get_available_actions(last_action)
         ...
 
-    def get_available_actions(self, last_action:tuple[Action, int]) -> list:
+    def update_available_actions(self, last_action:tuple[Action, int]) -> list:
         last_act = last_action[0]
         last_amt = last_action[1]
 
+
+        self.valid_actions = [Action.FOLD]
         if last_act is None:
             return [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
 
-        possible_actions = [Action.FOLD]
         match last_act:
             case Action.FOLD:
                 # case shouldn't be achieved
-                return []
+                self.valid_actions = []
+                return self.valid_actions
             case Action.CHECK:
-                return [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
+                self.valid_actions =  [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
+                return self.valid_actions
             case Action.CALL:
                 # case shouldn't be achieved.
-                return []
+                self.valid_actions = [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
+                return self.valid_actions
             case Action.BET:
-                possible_actions.append(Action.ALL_IN)
+                self.valid_actions.append(Action.ALL_IN)
                 if self.stack > last_amt:
-                    possible_actions.append(Action.CALL)
-                    possible_actions.append(Action.RAISE)
+                    self.valid_actions.append(Action.CALL)
+                    self.valid_actions.append(Action.RAISE)
             case Action.RAISE:
-                possible_actions.append(Action.ALL_IN)
+                self.valid_actions.append(Action.ALL_IN)
                 if self.stack > last_amt:
-                    possible_actions.append(Action.CALL)
-                    possible_actions.append(Action.RAISE)
+                    self.valid_actions.append(Action.CALL)
+                    self.valid_actions.append(Action.RAISE)
             case Action.ALL_IN:
-                possible_actions.append(Action.CALL)
-        return possible_actions
+                self.valid_actions.append(Action.CALL)
+        return self.valid_actions
