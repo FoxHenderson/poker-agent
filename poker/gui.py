@@ -63,7 +63,7 @@ class gui:
 
     def card_image(self,frame, card_name):
         img = Image.open(f"img/cards/{card_name}.png")
-        img = img.resize((50, 70))
+        img = img.resize((100, 140))
         img= ImageTk.PhotoImage(img)
         return img
 
