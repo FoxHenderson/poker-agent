@@ -9,7 +9,7 @@ class Command_Line_Player(Player):
         super().__init__(ID, name)
 
     def action(self, last_action, call_amt):
-        super().action(last_action)
+        #super().action(last_action)
 
         my_action = int(input("FOLD = 1, CHECK = 2, CALL = 3, BET = 4, RAISE = 5, ALL_IN = 6"))
         my_action = Action(my_action)
@@ -40,28 +40,8 @@ class Person_Player(Player):
         super().__init__(ID, name)
         self.current_action = None
 
-    async def action(self, last_action):
-        await self.get_action_from_user()
-        print("GETTING ACTION:", action)
-
-    async def async_action(choice):
-        """
-        Waits for a variable to change and returns its value using asyncio.
-        """
-
-        future = asyncio.Future()
-
-        def set_future(value):
-            future.set_result(value)
-
-        def on_choice_change(*args):
-            set_future(choice.get())
-            root.quit()
-
-        choice.trace("w", on_choice_change)
-        root.mainloop()
-
-        return await future
+    def make_move(self, last_action):
+        print("WAITING FOR USER TO MAKE A MOVE", action)
 
         
 
@@ -76,21 +56,32 @@ class Random_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)
     
-    def action(self, last_action:tuple[Action, int], call_amt) -> list[Action]:
+    def make_move(self, game):
+
+        opposition_player = game.get_opponent_player(self)
+        last_action = opposition_player.action_history[-1]
         possible_actions = self.get_available_actions(last_action)
 
         new_action = random.choice(possible_actions)
         amount = 0
 
-        if new_action == Action.BET or new_action == Action.RAISE:
+        if new_action == Action.RAISE:
             amount = random.randint(min(self.stack, 2 * last_action[1]) , self.stack)
             if amount == self.stack:
-                new_action = Action.ALL_IN
+                game.all_in(self)
+            game.raise_bet(self, amount)
+
+        if new_action == Action.BET:
+            amount = random.randint(min(self.stack, 2 * last_action[1]) , self.stack)
+            if amount == self.stack:
+                game.all_in(self)
+            game.bet(self, amount)
+ 
         elif new_action == Action.CALL:
-            amount = call_amt
+            game.call(self)
 
-        if new_action == Action.ALL_IN:
-            amount = self.stack
+        elif new_action == Action.ALL_IN:
+            game.all_in(self)
 
-        print(new_action, amount)
+        print("computer:", new_action, amount)
         return (new_action, amount)
