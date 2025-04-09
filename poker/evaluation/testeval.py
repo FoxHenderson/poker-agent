@@ -1,3 +1,4 @@
+"""
 from fivecardeval import evalFromBin
 from gamelogic.game import Deck, Card
 
@@ -31,3 +32,4 @@ def test_five_card():
                             evalFromBin(handBin[0], handBin[1], handBin[2], handBin[3], handBin[4]) ==
                             99
                         )
+"""

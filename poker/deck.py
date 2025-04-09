@@ -8,7 +8,6 @@ class Deck:
 
     def __create_deck(self):
         deck = []
-        #print("DECK: ", deck)
         for i in range(0, 52):
             deck.append(Card(i))
         return deck
@@ -17,10 +16,13 @@ class Deck:
         random.shuffle(self.deck)
     
     def draw_card(self):
-        card = self.deck.pop()
-        self.size -= 1
-        return card
+        if self.deck:
+            card = self.deck.pop()
+            self.size -= 1
+            return card
+        else:
+            raise Exception("empty deck")
 
     def burn_card(self):
-        self.deck.pop()
+        self.deck.pop(self.size-1)
         self.size -= 1

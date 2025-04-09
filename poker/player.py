@@ -19,11 +19,11 @@ class Player:
         # actions of the form: (Action, amount) e.g (Raise, 50) or (Check, 0)
         self.action_history = [[], [], [], []]
 
-    def __repr__(self):
-        print(f"{self.name}: {self.stack}")
+    def __str__(self):
+        return (f"{self.name}: {self.stack}")
 
     def show_hand(self) -> str:
-        print (" ", self.cards[0].show_card(), "\n ", self.cards[1].show_card())
+        print (f"{self.cards[0].show_card()}, {self.cards[1].show_card()}")
     
     def update_action(self, game_state, last_action:Action, amount=0):
         # preflop = 0, flop = 1, turn = 2, river = 3
@@ -34,11 +34,11 @@ class Player:
             return self.action_history[state][-1]
         return None
 
-    def action(self, last_action:tuple[Action, int]):
+    def action(self, last_action:tuple[Action, int], call_amt):
         valid_actions = self.get_available_actions(last_action)
         ...
 
-    def get_available_actions(self, last_action:tuple[Action, int]):
+    def get_available_actions(self, last_action:tuple[Action, int]) -> list:
         last_act = last_action[0]
         last_amt = last_action[1]
 
@@ -50,13 +50,11 @@ class Player:
             case Action.FOLD:
                 # case shouldn't be achieved
                 return []
-                raise Exception("Get actions from FOLD")
             case Action.CHECK:
                 return [Action.FOLD, Action.CHECK, Action.BET, Action.ALL_IN]
             case Action.CALL:
                 # case shouldn't be achieved.
                 return []
-                raise Exception("Get actions from CALL")
             case Action.BET:
                 possible_actions.append(Action.ALL_IN)
                 if self.stack > last_amt:
@@ -69,5 +67,4 @@ class Player:
                     possible_actions.append(Action.RAISE)
             case Action.ALL_IN:
                 possible_actions.append(Action.CALL)
-            
         return possible_actions

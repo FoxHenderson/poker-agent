@@ -8,11 +8,28 @@ class Command_Line_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)
 
-    def action(self, last_action, amount):
-        super().action(last_action, amount)
+    def action(self, last_action, call_amt):
+        super().action(last_action)
 
-    def get_available_actions(self, last_action, amount):
-        result = super().get_available_actions(last_action, amount)
+        my_action = int(input("FOLD = 1, CHECK = 2, CALL = 3, BET = 4, RAISE = 5, ALL_IN = 6"))
+        my_action = Action(my_action)
+
+        amt = 0
+
+        if my_action == Action.RAISE or my_action == Action.BET:
+            amt = int(input(f"(Balance: {self.stack}) Raise/Bet Amount : "))
+            if amt == self.stack:
+                my_action = Action.ALL_IN
+        elif my_action == Action.CALL:
+            amt = call_amt
+
+        if my_action == Action.ALL_IN:
+            amt = self.stack
+
+        return (my_action, amt)
+
+    def get_available_actions(self, last_action):
+        result = super().get_available_actions(last_action)
         print(result)
         return result
 
@@ -59,15 +76,21 @@ class Random_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)
     
-    def action(self, last_action:Action, min_amount:int):
-        possible_actions = self.get_available_actions(last_action, min_amount)
+    def action(self, last_action:tuple[Action, int], call_amt) -> list[Action]:
+        possible_actions = self.get_available_actions(last_action)
 
         new_action = random.choice(possible_actions)
         amount = 0
 
         if new_action == Action.BET or new_action == Action.RAISE:
-            amount = random.randint(min(self.stack, min_amount) , self.stack)
-            if amount == amount:
+            amount = random.randint(min(self.stack, 2 * last_action[1]) , self.stack)
+            if amount == self.stack:
                 new_action = Action.ALL_IN
+        elif new_action == Action.CALL:
+            amount = call_amt
 
+        if new_action == Action.ALL_IN:
+            amount = self.stack
+
+        print(new_action, amount)
         return (new_action, amount)
