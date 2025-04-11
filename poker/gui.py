@@ -1,14 +1,11 @@
-import tkinter as tk
-from tkinter import ttk
-#from game import Gui_Game as game
 from PIL import ImageTk, Image
 import tkinter as tk
 from tkinter import ttk
-from game_no_loop import Game
-from PIL import ImageTk, Image
-import simple_players
-from actions import Action
+from logic.game_no_loop import Game
+import logic.simple_players as simple_players
+from logic.actions import Action
 
+PATH = "C:\\Users\\Fox\\Desktop\\poker\\poker-agent\\poker\\img\\cards"
 
 class GUI():
     def __init__(self):
@@ -24,10 +21,6 @@ class GUI():
         self.show_opponent_cards = tk.BooleanVar()  # Create a BooleanVar
         self.show_opponent_cards.set(False)
         self.refresh_page()
-    
-        
-
-
     
     def fold(self):
         # Handle fold action
@@ -111,7 +104,7 @@ class GUI():
 
 
     def card_image(self,frame, card_name):
-        img = Image.open(f"img/cards/{card_name}.png")
+        img = Image.open(f"{PATH}\\{card_name}.png")
         img = img.resize((100, 140))
         img= ImageTk.PhotoImage(img)
         return img
@@ -273,6 +266,3 @@ class GUI():
 
 
         self.root.mainloop()
-
-g = GUI()
-

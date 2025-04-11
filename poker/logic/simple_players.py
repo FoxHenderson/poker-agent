@@ -1,5 +1,5 @@
-from player import Player
-from actions import Action
+from .player import Player
+from .actions import Action
 import tkinter as tk
 import asyncio
 import random
@@ -7,27 +7,6 @@ import random
 class Command_Line_Player(Player):
     def __init__(self, ID:int, name:str):
         super().__init__(ID, name)
-
-
-    def madfghke_move(self, game):
-        #super().action(last_action)
-        actions = {Action.FOLD: game.fold, Action.CHECK: game.check, Action.CALL: game.call, Action.RAISE: self.raise_bet, Action.BET:self.bet_method, Action.ALL_IN: game.all_in}
-        my_action = int(input("FOLD = 1, CHECK = 2, CALL = 3, BET = 4, RAISE = 5, ALL_IN = 6"))
-        my_action = Action(my_action)
-
-        amt = 0
-
-        if my_action == Action.RAISE or my_action == Action.BET:
-            amt = int(input(f"(Balance: {self.stack}) Raise/Bet Amount : "))
-            if amt == self.stack:
-                my_action = Action.ALL_IN
-        elif my_action == Action.CALL:
-            amt = call_amt
-
-        if my_action == Action.ALL_IN:
-            amt = self.stack
-
-        return (my_action, amt)
 
 
     def make_move(self, game):
@@ -80,7 +59,7 @@ class Person_Player(Player):
         self.current_action = None
 
     def make_move(self, last_action):
-        print("WAITING FOR USER TO MAKE A MOVE", action)
+        print("WAITING FOR USER TO MAKE A MOVE", last_action)
 
         
 
@@ -96,7 +75,7 @@ class Random_Player(Player):
         super().__init__(ID, name)
     
 
-    def choose_move():
+    def choose_move(self):
         return random.choice(self.valid_actions)
 
     

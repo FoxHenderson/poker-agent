@@ -1,5 +1,5 @@
 from enum import Enum
-from actions import Action
+from .actions import Action
 
 
 
@@ -83,6 +83,3 @@ class Player:
                 self.valid_actions.append(Action.CALL)
             
         return self.valid_actions
-
-
-

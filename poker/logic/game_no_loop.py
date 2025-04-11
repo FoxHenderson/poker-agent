@@ -1,20 +1,10 @@
 import random
 #import numpy as np
 
-from evaluation.handeval import eval_seven_card
-from deck import Deck
-from player import Player
-from actions import Action
-
-
-
-
-
-
-
-
-
-
+from .evaluation.handeval import eval_seven_card
+from .deck import Deck
+from .player import Player
+from .actions import Action
 
 class Game:
     def __init__(self, player1:Player, player2:Player):
@@ -351,6 +341,3 @@ class Game:
         other_player.update_available_actions((Action.ALL_IN, player.stack))
         self.update_game_log(f"{player} went All In")
         self.previous_player = player
-
-
-    

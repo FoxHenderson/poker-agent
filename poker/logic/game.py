@@ -1,10 +1,10 @@
 import random
 #import numpy as np
 
-from evaluation.handeval import eval_seven_card
-from deck import Deck
-from player import Player
-from actions import Action
+from .evaluation.handeval import eval_seven_card
+from .deck import Deck
+from .player import Player
+from .actions import Action
 
 
 
