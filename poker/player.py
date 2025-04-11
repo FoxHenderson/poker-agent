@@ -12,7 +12,7 @@ class Player:
         self.stack = 1000
         self.bet = 0 # amount bet in the current round
         self.previous_bet = 0
-
+        self.betting_history = []
 
         self.valid_actions = []
 
@@ -27,6 +27,10 @@ class Player:
         return (f"{self.name}: {self.stack}")
 
     
+    def add_bet(self, bet_amount):
+        self.previous_bet = bet_amount
+        self.betting_history.append(self.previous_bet)
+
         
     def show_hand(self) -> str:
         print (f"{self.cards[0].show_card()}, {self.cards[1].show_card()}")
@@ -79,3 +83,6 @@ class Player:
                 self.valid_actions.append(Action.CALL)
             
         return self.valid_actions
+
+
+

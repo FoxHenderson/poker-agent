@@ -138,7 +138,8 @@ class GUI():
 
 
     def refresh_page(self):           
-        
+        if self.game.previous_player == self.player1:
+            self.computer.make_move(self.game)
         self.clear_page()
        
         # Player Area

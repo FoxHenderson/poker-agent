@@ -172,6 +172,8 @@ class Game:
         self.update_game_log(("FINAL STANDINGS:", str(self.players[0]), str(self.players[1])))
         self.update_game_log("END OF GAME!")
 
+        #self.restart()
+
     def restart(self):
         self.update_game_log("RESTARTING!")
         for player in self.players:
@@ -258,7 +260,7 @@ class Game:
             self.checkstate = 0
             self.update_dealer_button()
             self.update_game_log(f"{player} Agreed to check")
-            player.previous_bet = 0
+            player.add_bet(0)
 
             self.previous_player = player
             self.next_round()
@@ -274,7 +276,7 @@ class Game:
         player.stack -= call_amount
         self.checkstate = 0
 
-        player.previous_bet = call_amount
+        player.add_bet(call_amount)
         player.action_history.append((Action.CALL, call_amount))
         other_player.update_available_actions((Action.CALL, call_amount))
         
@@ -290,7 +292,7 @@ class Game:
         player.bet += amount_to_bet
         player.stack -= amount_to_bet # PLEASE REVIEW THIS LINE TO SEE IF IT IS DOING THE CORRECT THING
         self.checkstate = 0
-        player.previous_bet = amount_to_bet
+        player.add_bet(amount_to_bet)
         player.action_history.append((Action.BET, amount_to_bet))
         other_player.update_available_actions((Action.BET, amount_to_bet))
         self.update_game_log(f"{player} Betted {amount_to_bet}")
@@ -307,7 +309,7 @@ class Game:
             player.stack -= amount_to_raise
             player.bet += amount_to_raise
 
-            player.previous_bet = amount_to_raise
+            player.add_bet(amount_to_raise)
             player.action_history.append((Action.RAISE, amount_to_raise))
             other_player.update_available_actions((Action.RAISE, amount_to_raise))
             self.update_game_log(f"{player} Raised ({amount_to_raise})")
@@ -333,7 +335,7 @@ class Game:
                     self.pot += bet_amt
                     player.bet += bet_amt
                     player.stack -= bet_amt
-                    player.previous_bet = bet_amt
+                    player.add_bet(bet_amt)
 
                     self.next_round()
         else:
@@ -342,7 +344,7 @@ class Game:
             player.bet += bet_amt
             self.pot += bet_amt
             player.stack -= bet_amt
-            player.previous_bet = bet_amt
+            player.add_bet(bet_amt)
 
 
         player.action_history.append((Action.ALL_IN,player.stack))
