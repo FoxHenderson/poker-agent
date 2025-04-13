@@ -1,40 +1,49 @@
-from player import Player
-from actions import Action
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import random
+from gametree import CFR_Node
+from cmdlogic.player import Player
+from cmdlogic.card import Card
+
+# abstracted actions
+class AbstractActions:
+    CHECK_FOLD = 0,
+    CALL = 1
+    BET_HALF = 2 # bet half pot
+    BET_POT = 3
+    ALL_IN = 4
+
+    NUM_ACTIONS = 5
 
 class CFR_Player(Player):
-    def __init__(self, player_id, name):
-        super().__init__(player_id, name)
-        # Define your PyTorch model
-        self.model = nn.Sequential(
-            nn.Linear(input_size, hidden_size),  # Replace with your input and hidden sizes
-            nn.ReLU(),
-            nn.Linear(hidden_size, output_size), # Replace with your output size (number of actions)
-            nn.Softmax(dim=1)
-        )
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-        self.regret_sum = {} # Information set : regrets
-        self.strategy_sum = {} # Information set : strategy sums
 
-    def choose_action(self, available_actions, game_state):
-        # Convert game_state to input for the model
-        input_tensor = torch.tensor(self.encode_game_state(game_state), dtype=torch.float32).unsqueeze(0)
-        action_probs = self.model(input_tensor)[0].detach().numpy()
-        # Sample an action based on probabilities
-        action = random.choices(available_actions, weights=action_probs)[0]
-        # Update CFR regret values and strategy
-        self.update_cfr(game_state, action)
-        return action
 
-    def encode_game_state(self, game_state):
-        # Implement game state encoding
-        # ...
-        return encoded_state
+    def action(self, last_action, call_amt):
+        valid_actions = self.get_available_actions(last_action)
 
-    def update_cfr(self, game_state, action):
-        # Implement CFR update logic
-        # ...
-        """"""
+        chosen_action = ... # somehow get the action 
+
+    # THIS IS USED FOR TRAINING SO IT WILL USE THE ABSTRACTED ACTIONS ONLY FOR NOW - FOX
+    # BECAUSE OF THE NATURE OF THE TRAINING, BOTH PLAYERS WILL HAVE THEIR STACKS RESET AFTER EACH HAND
+    # THIS MEANS THAT THERE ARE NO ALL IN DISCREPENCIES!
+    def get_available_actions(self, last_action:AbstractActions):
+        if last_action == AbstractActions.CHECK_FOLD:
+            return [
+                AbstractActions.CHECK_FOLD,
+                AbstractActions.CALL, 
+                AbstractActions.BET_HALF,
+                AbstractActions.BET_POT,
+                AbstractActions.ALL_IN
+            ]
+        elif last_action == AbstractActions.CHECK_FOLD:
+            return [
+                AbstractActions.CHECK_FOLD,
+                AbstractActions.CALL, 
+                AbstractActions.BET_HALF,
+                AbstractActions.BET_POT,
+                AbstractActions.ALL_IN
+            ]
+        else:
+            return [
+                AbstractActions.CHECK_FOLD,
+                AbstractActions.BET_HALF,
+                AbstractActions.BET_POT,
+                AbstractActions.ALL_IN
+            ]
