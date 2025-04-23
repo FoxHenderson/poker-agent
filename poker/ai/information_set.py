@@ -1,9 +1,10 @@
 import numpy as np
+import jsonpickle
+
 from cmdlogic.cfrgame import CFR_State
 from cmdlogic.card import Card
 from cmdlogic.evaluation.handeval import eval_seven_card
 from cmdlogic.deck import Deck
-
 
 # abstracted actions
 class AbstractActions:
@@ -33,7 +34,7 @@ class InformationSet():
         self.strategy_sum = [0.0] * AbstractActions.NUM_ACTIONS
 
         # number of legal actions for the player in the current state
-        self.NUM_LEGAL_ACTIONS = ...
+        self.NUM_LEGAL_ACTIONS = state.player.get_actions()
 
     # this needs to filter out legal actions to probability 0
     def get_strategy(self, realization_weight: float) -> list:
@@ -72,10 +73,29 @@ class InformationSet():
     
     @staticmethod
     def get_key_from_state(state:CFR_State) -> str:
-        return ":o"
+        """
+        Calculates the current key based on the game state (our game implementation wrapper)
+        Currently takes:
+            - Hand bucket (int 1-5)
+            - Board (IDK how to abstract this )
+            - Action history (see history method for defns)
+        and is of the form "bucket;board;history"
+        """
+        # this will need to change when state has been implemented
+        hole_cards = state.get_hole_cards()
+        board = state.get_board()
+        history = state.get_history()
+
+        hs2 = InformationSet.calculate_hs2(hole_cards, board)
+        bucket = InformationSet.bucket_from_hs2(hs2)
+
+        board_str = ''.join([str(card.id for card in board)]) if board else ""
+        action_str = InformationSet.encode_action_history(history)
+
+        return f"{bucket};{board_str};{action_str}"
     
     @staticmethod
-    def calculate_hs2(hole_cards:list[Card], board:list[Card]=None, iterations=10_000) -> float:
+    def calculate_hs2(hole_cards:list[Card], board:list[Card]=None, iterations=500) -> float:
         test_deck = Deck()
 
         # remove KNOWN dealt cards from deck
@@ -128,13 +148,13 @@ class InformationSet():
     @staticmethod
     def encode_action_history(history) -> str:
         """
-        Convert action history into string format.
+        Convert action history into string format
         """
         action_map = {
             AbstractActions.CHECK_FOLD: 'F',
             AbstractActions.CALL: 'C',
             AbstractActions.BET_HALF: 'H',
             AbstractActions.BET_POT: 'P',
-            AbstractActions.ALL_IN: 'A',
+            AbstractActions.ALL_IN: 'A'
         }
         return ''.join(action_map.get(action, '?') for action in history)

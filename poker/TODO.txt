@@ -10,3 +10,9 @@ https://aipokertutorial.com/game-abstractions/
 
 I think the event driven is better for the ai as well
 we want to decide on an action -> apply it to a game state -> get a new game state back
+
+right now the hs2 bucketing is working on 100 iterations per state, 
+which will be run probably over 10 million times. not good. precompute?
+the literature on this is sparse. 
+
+need to consider training the pre-flop, flop, turn etc seperately. Idk how this would work though
