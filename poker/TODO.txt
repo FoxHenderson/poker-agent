@@ -1,0 +1,12 @@
+- Implement bucketing (abstract the game tree)
+- Finish cfr game: interfaces with the base version - how we will update our information set
+- Finish cfr implementation
+
+- Try and train? Will probably not be possible
+- Optimise - MCCFR? Pruning unlikely branches...
+
+https://poker.cs.ualberta.ca/publications/AAMAS13-abstraction.pdf
+https://aipokertutorial.com/game-abstractions/
+
+I think the event driven is better for the ai as well
+we want to decide on an action -> apply it to a game state -> get a new game state back

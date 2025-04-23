@@ -14,6 +14,8 @@ class CFR_Trainer:
 
 
     def train(self):
+        
+
         iterations = 1_000_000
 
         player1 = CFR_Player()
@@ -21,11 +23,11 @@ class CFR_Trainer:
 
         for iteration in range(iterations):
             training_game = Game(player1, player2)
-
-
+            
+            
             if iteration % 100_000:
                 print(f"Completed {iteration}/10 of training")
-                print(f"Current strategy: {player1.}")
+                print(f"Current strategy: {player1}")
 
 def cfr(game:Game, history:list, player1:CFR_Player, player2:CFR_Player) -> float:
     """counterfactual regret minimisation"""
@@ -33,4 +35,4 @@ def cfr(game:Game, history:list, player1:CFR_Player, player2:CFR_Player) -> floa
 
 
     # return payoff for terminal state
-    if 
+    

@@ -14,6 +14,11 @@ class Deck:
             
     def shuffle_deck(self):
         random.shuffle(self.deck)
+
+    def peek(self, index=0) -> Card:
+        if index >= len(self.deck) or index < 0:
+            return Exception
+        return self.deck[index]
     
     def draw_card(self):
         if self.deck:

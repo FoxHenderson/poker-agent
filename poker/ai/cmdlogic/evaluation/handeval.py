@@ -57,6 +57,9 @@ def eval_seven_card(c:list):
         bin_hand = bin_from_list(hand)
         best_ranking = min(eval_from_bin(bin_hand), best_ranking)
 
+    if best_ranking == 9999:
+        return Exception
+
     return best_ranking
         
 def bin_from_list(card_list:list):
