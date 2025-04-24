@@ -6,13 +6,13 @@ class CFR_State:
     def __init__(
             self, 
             game:Game, 
-            current_player:Player, 
+            player_id: int, 
             history:dict,
 
         ):
 
         self.game = game
-        self.current_player = current_player
+        self.current_player = game.players[current_player]
         self.terminal = False
         self.winner = None
         self.history = history

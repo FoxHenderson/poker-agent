@@ -100,6 +100,14 @@ class Game:
 
 
 
+
+
+
+# FUNCTIONS NEEDED FOR CFR
+
+def is_hand_over(self) -> bool:
+    return self.loser != False or self.round_index > 3 or self.ended
+
 # GAME FUNCTIONS
 
     def deal_cards(self):

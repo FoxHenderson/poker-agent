@@ -6,13 +6,13 @@ class CFR_State:
     
     def __init__(self,
                  game: Game,
-                 player: Player):
-
+                 player_id: int):
+        self.game = game
         self.current_round = game.round_index
-        self.player_id = current_player_id
+        self.player_id = player_id
+        self.player = game.players[player_id]
         self.player_hand = player_hand
         self.board_cards = [x for x in game.board if x is not None]
-        print(self.board_cards)
         self.action_history = game.action_history
         self.pot = game.pot
 
@@ -55,7 +55,7 @@ class CFR_State:
 
             hero_hs_sum += hero_hs**2
             villain_hs_sum += villain_hs**2
-        # THIS ESSENTIALLY RANKS HOW LIKELY THE HAND IS TO WIN
+        # Since the results are scewed, they cannot be inversely compared
         return bucket(hero_hs_sum / iterations, num_of_buckets)
 
 
@@ -69,6 +69,10 @@ class CFR_State:
 
     # I THINK WE ALSO NEED A METRIC WHICH THINKS ABOUT HOW CONFIDENT AN OPPOSITION PLAYER IS GOING TO FEEL 
 
+    def get_possible_actions(self):
+        player_to_act = game.players[game.to_act_index]
+        last_action = player_to_act.get_last_action(self.current_round)
+        return player_to_act.get_available_actions(last action)
 
     def get_hole_cards(self):
         return self.player_hands
@@ -84,5 +88,8 @@ class CFR_State:
 
     def get_pot(self):
         return self.pot
+
+    def is_terminal(self):
+        return self.game.is_hand_over()
 
 
