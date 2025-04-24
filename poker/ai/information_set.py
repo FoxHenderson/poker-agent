@@ -76,7 +76,7 @@ class InformationSet():
         """
         Calculates the current key based on the game state (our game implementation wrapper)
         Currently takes:
-            - Hand bucket (int 1-5)
+            - Hand bucket (int 0-4)
             - Board (IDK how to abstract this )
             - Action history (see history method for defns)
         and is of the form "bucket;board;history"

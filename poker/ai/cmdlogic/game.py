@@ -1,12 +1,10 @@
 import random
 #import numpy as np
 
-from evaluation.handeval import eval_seven_card
-from deck import Deck
-from player import Player
-from actions import Action
-
-
+from .evaluation.handeval import eval_seven_card
+from .deck import Deck
+from .player import Player
+from .actions import Action
 
 class Game:
     def __init__(self, player1:Player, player2:Player):
@@ -16,7 +14,7 @@ class Game:
         self.players = [player1, player2]
         self.pot = 0
 
-        self.board = []
+        self.board = [None]*5
 
         self.action_history = []
 
@@ -28,144 +26,105 @@ class Game:
         self.dealer_button = 0
 
         # pre-flop = 0, flop = 1, turn = 2, river = 3
-        self.game_state = 0
+        self.round_index = 0
+        self.loser = False
+        self.winner = False
+        self.game_log = "Welcome to Poker!"
 
-    def game_loop(self):
+
+
+        self.done_flop = False
+        self.done_turn = False
+        self.done_river = False
+        self.ended = False
+
+        """ACTION ASSOCIATED ATTRIBUTES"""
+        self.checkstate = 0 # 0 is no-body has checked, 1 is when one player has checked, 2 is when both players choose to check
+        self.previous_bet_amount = 0
+        self.to_act_index = 0 # DETERMINES WHAT PLAYERS TURN IT IS
+        self.round_name = ""
+        self.previous_player = ""
         self.deal_cards()
 
-        # ========= pre-flop =========
-        winner = self.betting_loop(self.dealer_button)
-        if winner: # game is over
-            winner.stack += self.pot
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-        
-        # ========= flop =========
-        self.deal_flop()
 
-        winner = self.betting_loop((self.dealer_button + 1) % 2)
-        if winner: # game is over
-            winner.stack += self.pot
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
+# UTILITY FUNCTIONS
+    def update_game_log(self, log):
+        self.game_log = self.game_log + "\n" + str(log)
 
-        # ========= turn =========
-        self.deal_turn()
 
-        winner = self.betting_loop((self.dealer_button + 1) % 2)
-        if winner: # game is over
-            winner.stack += self.pot
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-
-        # ========= river =========
-        self.deal_river()
-
-        winner = self.betting_loop((self.dealer_button + 1) % 2)
-        if winner: # game is over
-            winner.stack += self.pot
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-
-        # determine winnner
-        self.determine_winner()
-
-    def betting_loop(self, to_act_index:int):
-        """returns False if game should continue else returns the winner (player obj)"""
-
-        last_action = (None, 0)
-
-        # handle blinds
-        if self.game_state == 0:
-            self.players[self.dealer_button].bet = self.small_blind
-            self.players[self.dealer_button].stack -= self.small_blind
-
-            self.players[(self.dealer_button + 1) % 2].bet = self.big_blind
-            self.players[(self.dealer_button + 1) % 2].stack -= self.big_blind
-
-            self.pot += self.big_blind + self.small_blind
-
-            last_action = (Action.RAISE, self.big_blind)
-
-        # if a player is all in skip the betting round
-        for player in self.players:
-            if player.all_in:
-                return False
-
-        # betting loop
-        while True:
-            hero_player = self.players[to_act_index]
-            villain_player = self.players[(to_act_index + 1) % 2]
-
-            call_amount = villain_player.bet - hero_player.bet
-
-            current_action, current_amount = hero_player.action(last_action, call_amount)
-
-            if current_action == Action.FOLD: # terminating action
-                return villain_player
-            elif current_action == Action.CHECK:
-                if last_action[0] == Action.CHECK: # terminating action (checks round)
-                    return False
-            elif current_action == Action.CALL: # terminating action
-                self.pot += call_amount
-                hero_player.stack -= call_amount
-                return False
-            elif current_action == Action.BET:
-                self.pot += current_amount
-                hero_player.bet += current_amount
-                hero_player.stack -= (current_amount - self.bet)
-            elif current_action == Action.RAISE:
-                self.pot += current_amount
-                hero_player.stack -= current_amount
-                hero_player.bet += current_amount
-            elif current_action == Action.ALL_IN:
-                hero_player.all_in = True
-                last_bet_amt = last_action[1]
-                # if the last bet was more than our stack (terminating case)
-                if last_bet_amt > current_amount:
-                    difference = last_bet_amt - current_amount
-                    # credit villain the difference
-                    villain_player += difference
-                    self.pot -= difference
-
-                    self.pot += current_amount
-                    hero_player.bet += current_amount
-                    hero_player.stack -= current_amount
-
-                    return False
-                # == case is coverered in selection logic (converted to call)
-                # < case, continue betting as normal 
-                hero_player.bet += current_amount
-                self.pot += current_amount
-                hero_player.stack -= current_amount
-
-            last_action = (current_action, current_amount)
-            to_act_index = (to_act_index + 1) % 2
+    def get_opponent_player(self, player):
+        for p in self.players:
+            if p != player:
+                return p
+        return False
 
     def update_dealer_button(self):
         self.dealer_button = (self.dealer_button + 1) % 2
 
+    def switch_player(self):
+        self.to_act_index = (self.to_act_index + 1) % 2
+
+    def get_round_name(self):
+        if self.round_index == 0:
+            print("PREFLOP")
+            self.update_game_log("Pre-Flop Round:")
+            self.round_name = "Pre-Flop"
+        elif self.round_index == 1:
+            print("FLOP")
+            self.deal_flop()
+            self.update_game_log("Flop Round:")
+            self.round_name = "Flop"
+        elif self.round_index == 2:
+            print("TURN")
+            self.deal_turn()
+            self.update_game_log("Turn Round:")
+            self.round_name = "Turn"
+        elif self.round_index == 3:
+            print("FIVER")
+            self.deal_river()
+            self.update_game_log("River Round:")
+            self.round_name = "River"
+        else:
+            self.determine_winner()
+            self.update_game_log(str(str(self.winner) + " WINS"))
+            return False
+            print("GAME OVER")
+        return self.round_name
+
+    def check_for_winner(self):
+        """CHECK FOR WINNER"""
+        if self.loser != False:
+            print(self.get_opponent_player(self.loser).name, " WINS")
+            self.winner = self.get_opponent_player(self.loser)
+            return True
+
+
+
+# GAME FUNCTIONS
+
     def deal_cards(self):
         for _ in range(2):
             for i in range(2):
-                (self.players[(self.dealer_button + i) % 2].cards).append(self.deck.draw_card())
+                card = self.deck.draw_card()
+                (self.players[(self.dealer_button + i) % 2].cards).append(card)
+
+
+    def next_round(self):
+        for player in self.players:
+            player.bet = 0
+        if self.winner: # game is over
+            self.winner.stack += self.pot
+            return
+        self.round_index +=1
+        print("self.round_index:", self.round_index)
+        return self.get_round_name()
+            
+
 
     def determine_winner(self):
         winner = None
 
-        hand_strength = []
+        hand_strength = {}
         for i in range(len(self.players)):
             score = eval_seven_card(self.board + (self.players[i]).cards)
             hand_strength[i] = score
@@ -175,13 +134,17 @@ class Game:
             self.resolve_draw()
             return
         elif hand_strength[0] < hand_strength[1]:
-            winner = self.players[0]
+            self.winner = self.players[0]
         else:
-            winner = self.players[1]
+            self.winner = self.players[1]
 
-        winner.stack += self.pot
 
-        return
+        print("STRENGTHS:", hand_strength)
+        self.winner.stack += self.pot
+
+        self.end_game()
+        return hand_strength
+
 
     def resolve_draw(self):
         # if pot is odd, give spare to player on dealer button
@@ -191,249 +154,190 @@ class Game:
             self.pot -= 1
 
         self.players[0].stack += (self.pot / 2)
-        self.players[1].stack += (self.pot / 2)
+        self.players[1].stack += (self.pot / 2)    
 
-    def deal_flop(self):
-        self.deck.burn_card()
-        for i in range(3):
-            new_card = self.deck.draw_card()
-            self.board.append(new_card)
 
-    def deal_turn(self):
-        self.deck.burn_card()
-        self.board.append(self.deck.draw_card())
+    def end_game(self):
+        self.ended = True
+        self.update_game_log(("FINAL STANDINGS:", str(self.players[0]), str(self.players[1])))
+        self.update_game_log("END OF GAME!")
 
-    def deal_river(self):
-        self.deck.burn_card()
-        self.board.append(self.deck.draw_card())
+        #self.restart()
 
-    def end_round(self):
-        for player in self.players:
-            player.bet = 0
-
-    def reset(self):
+    def restart(self):
+        self.update_game_log("RESTARTING!")
         for player in self.players:
             player.action_history = [[], [], [], []]
             player.bet = 0
             player.cards = []
             player.folded = False
             player.all_in = False
-        
-        self.board = []
+
+        self.board = [None]*5
         self.deck = Deck()
         self.deck.shuffle_deck()
         self.pot = 0
-        self.game_state = 0
+        self.round_index = 0
+        self.winner = False
 
         # index of dealer button. (0 or 1)
         self.dealer_button = (self.dealer_button + 1) % 2
 
-# used to interface with the GUI
-class GUI_Game(Game):
-    """Used to interface with the GUI"""
-    def game_loop(self):
-        return super().game_loop()
-
-# play poker in the command line
-class CL_Game(Game):
-    def __init__(self, player1, player2):
-        super().__init__(player1, player2)
-    
-    def game_loop(self):
         self.deal_cards()
+        self.pre_flop()
 
-        # ========= pre-flop =========
-        winner = self.betting_loop(self.dealer_button)
-        if winner: # game is over
-            winner.stack += self.pot
-            print(f"{winner.name} wins.")
-            for player in self.players:
-                print(player)
 
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-        
-        # ========= flop =========
-        self.deal_flop()
 
-        winner = self.betting_loop((self.dealer_button + 1) % 2)
-        if winner: # game is over
-            winner.stack += self.pot
-
-            print(f"{winner.name} wins.")
-            for player in self.players:
-                print(player)
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-
-        # ========= turn =========
-        self.deal_turn()
-
-        winner = self.betting_loop((self.dealer_button + 1) % 2)
-        if winner: # game is over
-            winner.stack += self.pot
-
-            print(f"{winner.name} wins.")
-            for player in self.players:
-                print(player)
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-
-        # ========= river =========
-        self.deal_river()
-
-        winner = self.betting_loop((self.dealer_button + 1) % 2)
-        if winner: # game is over
-            winner.stack += self.pot
-
-            print(f"{winner.name} wins.")
-            for player in self.players:
-                print(player)
-            # round over
-            self.reset()
-            return
-        self.end_round()
-        self.game_state += 1
-
-        # determine winnner
-        self.determine_winner()
-
-    def betting_loop(self, to_act_index:int):
-        """returns False if game should continue else returns the winner (player obj)"""
-
-        last_action = (None, 0)
-
-        # handle blinds
-        if self.game_state == 0:
-            print(f"{self.players[self.dealer_button].name} posts small blind ({self.small_blind})")
-            self.players[self.dealer_button].bet = self.small_blind
-            self.players[self.dealer_button].stack -= self.small_blind
-
-            print(f"{self.players[(self.dealer_button + 1) % 2].name} posts big blind ({self.big_blind})")
-            self.players[(self.dealer_button + 1) % 2].bet = self.big_blind
-            self.players[(self.dealer_button + 1) % 2].stack -= self.big_blind
-
-            self.pot += self.big_blind + self.small_blind
-
-            last_action = (Action.RAISE, self.big_blind)
-
-        # if a player is all in skip the betting round
-        for player in self.players:
-            if player.all_in:
-                return False
-
-        # betting loop
-        while True:
-            hero_player = self.players[to_act_index]
-            villain_player = self.players[(to_act_index + 1) % 2]
-
-            call_amount = villain_player.bet - hero_player.bet
-
-            current_action, current_amount = hero_player.action(last_action, call_amount)
-
-            print(f"{hero_player.name} {current_action} ({current_amount})")
-
-            if current_action == Action.FOLD: # terminating action
-                return villain_player
-            elif current_action == Action.CHECK:
-                if last_action[0] == Action.CHECK: # terminating action (checks round)
-                    return False
-            elif current_action == Action.CALL: # terminating action
-                self.pot += call_amount
-                hero_player.stack -= call_amount
-                return False
-            elif current_action == Action.BET:
-                self.pot += current_amount
-                hero_player.bet += current_amount
-                hero_player.stack -= (current_amount - self.bet)
-            elif current_action == Action.RAISE:
-                self.pot += current_amount
-                hero_player.stack -= current_amount
-                hero_player.bet += current_amount
-            elif current_action == Action.ALL_IN:
-                hero_player.all_in = True
-                last_bet_amt = last_action[1]
-                # if the last bet was more than our stack (terminating case)
-                if last_bet_amt > current_amount:
-                    difference = last_bet_amt - current_amount
-                    # credit villain the difference
-                    villain_player += difference
-                    self.pot -= difference
-
-                    self.pot += current_amount
-                    hero_player.bet += current_amount
-                    hero_player.stack -= current_amount
-
-                    return False
-                # == case is coverered in selection logic (converted to call)
-                # < case, continue betting as normal 
-                hero_player.bet += current_amount
-                self.pot += current_amount
-                hero_player.stack -= current_amount
-
-            print(f"{villain_player.name}'s turn. {current_amount - villain_player.bet} to call")
-
-            last_action = (current_action, current_amount)
-            to_act_index = (to_act_index + 1) % 2
-
-    def deal_cards(self):
-        for _ in range(2):
-            for i in range(2):
-                (self.players[(self.dealer_button + i) % 2].cards).append(self.deck.draw_card())
-
-        for player in self.players:
-            print(f"{player.name}:")
-            player.show_hand()
 
     def deal_flop(self):
-        super().deal_flop()
-        self.print_board()
-
-    def print_board(self):
-        print("Board:") 
-        print(self.board)
+        self.deck.burn_card()
+        for i in range(3):
+            new_card = self.deck.draw_card()
+            self.board.append(new_card)
+        self.board = self.board[3:]
 
     def deal_turn(self):
-        super().deal_turn()
-        self.print_board()
+        print("TURNING")
+        self.deck.burn_card()
+        self.board.append(self.deck.draw_card())
+        self.board = self.board[1:]
 
     def deal_river(self):
-        super().deal_river()
-        self.print_board()
+        self.deck.burn_card()
+        self.board.append(self.deck.draw_card())
+        self.board = self.board[1:]
 
-    def determine_winner(self):
-        winner = None
 
-        hand_strength = []
-        for i in range(len(self.players)):
-            score = eval_seven_card(self.board + (self.players[i]).cards)
-            hand_strength.append(score)
-        
-        # draw
-        if hand_strength[0] == hand_strength[1]:
-            self.resolve_draw()
-            return
-        # recall low score is better!
-        elif hand_strength[0] < hand_strength[1]:
-            winner = self.players[0]
+
+
+
+    def pre_flop(self):
+        self.bet(self.players[self.dealer_button], self.small_blind)
+        self.raise_bet(self.players[(self.dealer_button + 1) % 2], self.big_blind)
+
+
+
+
+
+# GAME ACTIONS
+
+    def fold(self, player):
+        other_player = self.get_opponent_player(player)
+        self.checkstate = 0
+        print(player.name, "loses")
+        player.folded = True
+        self.winner = other_player
+        self.winner.stack += self.pot
+        self.pot = 0
+        player.action_history.append((Action.FOLD, 0))
+
+
+        other_player.update_available_actions((Action.FOLD, 0))
+        player.update_available_actions((Action.FOLD, 0))
+        self.update_game_log(f"{player} Folded")
+
+        self.previous_player = player
+        self.end_game()
+
+    
+    def check(self, player):
+        other_player = self.get_opponent_player(player)
+        self.checkstate+=1
+        self.update_game_log(f"{player} Checked")
+        player.action_history.append((Action.CHECK, 0))
+        other_player.update_available_actions((Action.CHECK, 0))
+        if self.checkstate == 2:
+            self.checkstate = 0
+            self.update_dealer_button()
+            self.update_game_log(f"{player} Agreed to check")
+            player.add_bet(0)
+
+            self.previous_player = player
+            self.next_round()
+            return True
         else:
-            winner = self.players[1]
+            self.previous_player = player
+            return False
 
-        for score in hand_strength:
-            print(score)
+    def call(self, player):
+        other_player = self.get_opponent_player(player)
+        call_amount = other_player.bet - player.bet
+        self.pot += call_amount
+        player.stack -= call_amount
+        self.checkstate = 0
 
-        winner.stack += self.pot
-        print(f"{winner.name} wins.")
-        for player in self.players:
-            print(player)
+        player.add_bet(call_amount)
+        player.action_history.append((Action.CALL, call_amount))
+        other_player.update_available_actions((Action.CALL, call_amount))
+        
+        self.update_game_log(f"{player} Called (added {call_amount})")
 
-        return
+        self.previous_player = player
+        self.next_round()
+        return True
+
+    def bet(self, player, amount_to_bet):
+        other_player = self.get_opponent_player(player)        
+        self.pot += amount_to_bet
+        player.bet += amount_to_bet
+        player.stack -= amount_to_bet # PLEASE REVIEW THIS LINE TO SEE IF IT IS DOING THE CORRECT THING
+        self.checkstate = 0
+        player.add_bet(amount_to_bet)
+        player.action_history.append((Action.BET, amount_to_bet))
+        other_player.update_available_actions((Action.BET, amount_to_bet))
+        self.update_game_log(f"{player} Betted {amount_to_bet}")
+        self.previous_player = player
+
+    def raise_bet(self, player, amount_to_raise):
+        other_player = self.get_opponent_player(player)
+        self.checkstate = 0
+        if amount_to_raise <= other_player.previous_bet:
+            print("BIG FAT AND FALSE")
+            return False
+        else:
+            self.pot += amount_to_raise
+            player.stack -= amount_to_raise
+            player.bet += amount_to_raise
+
+            player.add_bet(amount_to_raise)
+            player.action_history.append((Action.RAISE, amount_to_raise))
+            other_player.update_available_actions((Action.RAISE, amount_to_raise))
+            self.update_game_log(f"{player} Raised ({amount_to_raise})")
+            self.previous_player = player
+            return True
+
+
+    def all_in(self, player):
+        """NEED TO FINALISE HOW THIS FUNCTION WORKS - DISCUSS WITH FOX"""
+        self.checkstate = 0
+        player.all_in = True
+        other_player = self.get_opponent_player(player)
+        last_bet_amt = other_player.previous_bet
+        bet_amt = player.stack
+        # if the last bet was more than our stack (terminating case)
+        if last_bet_amt > player.stack:
+                    difference = last_bet_amt - player.stack
+                    # credit villain the difference
+                    other_player.stack += difference
+                    self.pot -= difference
+                    
+                    last_bet_amt
+                    self.pot += bet_amt
+                    player.bet += bet_amt
+                    player.stack -= bet_amt
+                    player.add_bet(bet_amt)
+
+                    self.next_round()
+        else:
+            # == case is coverered in selection logic (converted to call)
+            # < case, continue betting as normal 
+            player.bet += bet_amt
+            self.pot += bet_amt
+            player.stack -= bet_amt
+            player.add_bet(bet_amt)
+
+
+        player.action_history.append((Action.ALL_IN,player.stack))
+        other_player.update_available_actions((Action.ALL_IN, player.stack))
+        self.update_game_log(f"{player} went All In")
+        self.previous_player = player
