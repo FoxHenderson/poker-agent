@@ -1,5 +1,5 @@
 from enum import Enum
-from actions import Action
+from .actions import Action
 
 
 

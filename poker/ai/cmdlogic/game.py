@@ -105,8 +105,14 @@ class Game:
 
 # FUNCTIONS NEEDED FOR CFR
 
-def is_hand_over(self) -> bool:
-    return self.loser != False or self.round_index > 3 or self.ended
+    def is_hand_over(self) -> bool:
+        return self.loser != False or self.round_index > 3 or self.ended
+
+    def get_terminal_values(self) -> dict[Player, int]:
+        terminal_values = {}
+        for player in self.players:
+            terminal_values[player] = player.stack
+        return terminal_values
 
 # GAME FUNCTIONS
 
@@ -229,7 +235,11 @@ def is_hand_over(self) -> bool:
 
 # GAME ACTIONS
 
+
+
+
     def fold(self, player):
+        print("FOLD")
         other_player = self.get_opponent_player(player)
         self.checkstate = 0
         print(player.name, "loses")
@@ -249,6 +259,7 @@ def is_hand_over(self) -> bool:
 
     
     def check(self, player):
+        print("CHECK")
         other_player = self.get_opponent_player(player)
         self.checkstate+=1
         self.update_game_log(f"{player} Checked")
@@ -268,6 +279,7 @@ def is_hand_over(self) -> bool:
             return False
 
     def call(self, player):
+        print("CALL")
         other_player = self.get_opponent_player(player)
         call_amount = other_player.bet - player.bet
         self.pot += call_amount
@@ -285,6 +297,7 @@ def is_hand_over(self) -> bool:
         return True
 
     def bet(self, player, amount_to_bet):
+        print("BET", amount_to_bet)
         other_player = self.get_opponent_player(player)        
         self.pot += amount_to_bet
         player.bet += amount_to_bet
@@ -297,6 +310,7 @@ def is_hand_over(self) -> bool:
         self.previous_player = player
 
     def raise_bet(self, player, amount_to_raise):
+        print("RAISE", amount_to_raise)
         other_player = self.get_opponent_player(player)
         self.checkstate = 0
         if amount_to_raise <= other_player.previous_bet:
@@ -316,6 +330,7 @@ def is_hand_over(self) -> bool:
 
 
     def all_in(self, player):
+        print("ALL IN")
         """NEED TO FINALISE HOW THIS FUNCTION WORKS - DISCUSS WITH FOX"""
         self.checkstate = 0
         player.all_in = True

@@ -1,10 +1,11 @@
 import numpy as np
-import jsonpickle
+#import jsonpickle
 
-from cmdlogic.cfrgame import CFR_State
+#from cmdlogic.cfrgame import CFR_State
 from cmdlogic.card import Card
 from cmdlogic.evaluation.handeval import eval_seven_card
 from cmdlogic.deck import Deck
+from CFRState import CFR_State
 
 # abstracted actions
 class AbstractActions:
@@ -151,7 +152,8 @@ class InformationSet():
         Convert action history into string format
         """
         action_map = {
-            AbstractActions.CHECK_FOLD: 'F',
+            AbstractActions.CHECK: 'K',
+            AbstractActions.FOLD: 'F',
             AbstractActions.CALL: 'C',
             AbstractActions.BET_HALF: 'H',
             AbstractActions.BET_POT: 'P',

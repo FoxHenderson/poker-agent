@@ -11,7 +11,7 @@ class CFR_State:
         self.current_round = game.round_index
         self.player_id = player_id
         self.player = game.players[player_id]
-        self.player_hand = player_hand
+        self.player_hand = self.player.cards
         self.board_cards = [x for x in game.board if x is not None]
         self.action_history = game.action_history
         self.pot = game.pot
@@ -21,6 +21,7 @@ class CFR_State:
     def calculate_hand_strength_squared(self, iterations, num_of_buckets):
 
         test_deck = Deck()
+        print("CALCULATING HAND STRENGTH")
 
         # Remove KNOWN dealt cards from the deck
         for card in self.player_hand + self.board_cards:
@@ -65,14 +66,13 @@ class CFR_State:
         return min(int((hs2 * num_of_buckets )// 1), num_of_buckets)
         
 
-
-
     # I THINK WE ALSO NEED A METRIC WHICH THINKS ABOUT HOW CONFIDENT AN OPPOSITION PLAYER IS GOING TO FEEL 
 
     def get_possible_actions(self):
-        player_to_act = game.players[game.to_act_index]
+        player_to_act = self.game.players[self.game.to_act_index]
         last_action = player_to_act.get_last_action(self.current_round)
-        return player_to_act.get_available_actions(last action)
+        print(player_to_act, last_action)
+        return player_to_act.get_available_actions(last_action)
 
     def get_hole_cards(self):
         return self.player_hands
@@ -90,6 +90,7 @@ class CFR_State:
         return self.pot
 
     def is_terminal(self):
-        return self.game.is_hand_over()
+        print("IS IT TERMINAL?:", self.game.ended)
+        return self.game.ended
 
 
