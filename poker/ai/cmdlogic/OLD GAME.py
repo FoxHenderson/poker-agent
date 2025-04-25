@@ -26,7 +26,7 @@ class Game:
         self.dealer_button = 0
 
         # pre-flop = 0, flop = 1, turn = 2, river = 3
-        self.game_state = 0
+        self.round_index = 0
         self.loser = False
         self.winner = False
         self.game_log = "Welcome to Poker!"
@@ -41,7 +41,7 @@ class Game:
         """ACTION ASSOCIATED ATTRIBUTES"""
         self.checkstate = 0 # 0 is no-body has checked, 1 is when one player has checked, 2 is when both players choose to check
         self.previous_bet_amount = 0
-        self.to_act_index = 0 # DETERMINES WHAT PLAYERS TURN IT IS
+        self.to_act_index = self.dealer_button # DETERMINES WHAT PLAYERS TURN IT IS
         self.round_name = ""
         self.previous_player = ""
         self.deal_cards()
@@ -53,10 +53,11 @@ class Game:
 
 
     def get_opponent_player(self, player):
-        print("PLAYERS:", self.players)
+        print("PLAYERS(in function)", self.players[0], self.players[1])
         for p in self.players:
-            print("PLAYER", player, p)
-            if p.ID != player.ID:
+            print("OPONENT:",p, player)
+            if p.name != player.name:
+                print("returing", p)
                 return p
         return False
 
@@ -67,21 +68,21 @@ class Game:
         self.to_act_index = (self.to_act_index + 1) % 2
 
     def get_round_name(self):
-        if self.game_state == 0:
+        if self.round_index == 0:
             print("PREFLOP")
             self.update_game_log("Pre-Flop Round:")
             self.round_name = "Pre-Flop"
-        elif self.game_state == 1:
+        elif self.round_index == 1:
             print("FLOP")
             self.deal_flop()
             self.update_game_log("Flop Round:")
             self.round_name = "Flop"
-        elif self.game_state == 2:
+        elif self.round_index == 2:
             print("TURN")
             self.deal_turn()
             self.update_game_log("Turn Round:")
             self.round_name = "Turn"
-        elif self.game_state == 3:
+        elif self.round_index == 3:
             print("FIVER")
             self.deal_river()
             self.update_game_log("River Round:")
@@ -102,16 +103,19 @@ class Game:
 
 
 
-#CFR
+
+
+
+# FUNCTIONS NEEDED FOR CFR
+
     def is_hand_over(self) -> bool:
-        return self.loser != False or self.game_state > 3 or self.ended
+        return self.loser != False or self.round_index > 3 or self.ended
 
     def get_terminal_values(self) -> dict[Player, int]:
         terminal_values = {}
         for player in self.players:
             terminal_values[player] = player.stack
         return terminal_values
-
 
 # GAME FUNCTIONS
 
@@ -128,8 +132,8 @@ class Game:
         if self.winner: # game is over
             self.winner.stack += self.pot
             return
-        self.game_state +=1
-        print("self.game_state:", self.game_state)
+        self.round_index +=1
+        print("self.round_index:", self.round_index)
         return self.get_round_name()
             
 
@@ -153,6 +157,8 @@ class Game:
 
 
         print("STRENGTHS:", hand_strength)
+        print("WINNER: ", self.winner)
+        print("POT:", self.pot)
         self.winner.stack += self.pot
 
         self.end_game()
@@ -172,9 +178,13 @@ class Game:
 
     def end_game(self):
         self.ended = True
+        print("ENDED GAME")
+        print("WINNER: ", self.winner)
+        print("POT:", self.pot)
         self.update_game_log(("FINAL STANDINGS:", str(self.players[0]), str(self.players[1])))
         self.update_game_log("END OF GAME!")
-
+        self.update_game_log(("WINNER: ", str(self.winner)))
+        self.update_game_log(("POT: ", self.pot))
         #self.restart()
 
     def restart(self):
@@ -190,7 +200,7 @@ class Game:
         self.deck = Deck()
         self.deck.shuffle_deck()
         self.pot = 0
-        self.game_state = 0
+        self.round_index = 0
         self.winner = False
 
         # index of dealer button. (0 or 1)
@@ -231,18 +241,27 @@ class Game:
 
 
 
+    
+
+
 
 # GAME ACTIONS
 
+
+
+
     def fold(self, player):
+        print("MONEY:", self.players[0], self.players[1])
+        #print("FOLD")
         other_player = self.get_opponent_player(player)
         self.checkstate = 0
-        print(player.name, "loses")
+        print(player.name, "loses", other_player.name, "wins")
         player.folded = True
         self.winner = other_player
+        print(player, other_player)
         self.winner.stack += self.pot
         self.pot = 0
-        player.action_history.append((Action.FOLD, 0))
+        player.action_history[self.round_index].append((Action.FOLD, 0))
 
 
         other_player.update_available_actions((Action.FOLD, 0))
@@ -250,61 +269,74 @@ class Game:
         self.update_game_log(f"{player} Folded")
 
         self.previous_player = player
+        self.switch_player()
         self.end_game()
 
     
     def check(self, player):
+        #print("CHECK")
         other_player = self.get_opponent_player(player)
         self.checkstate+=1
         self.update_game_log(f"{player} Checked")
-        player.action_history.append((Action.CHECK, 0))
+        player.action_history[self.round_index].append((Action.CHECK, 0))
         other_player.update_available_actions((Action.CHECK, 0))
         if self.checkstate == 2:
             self.checkstate = 0
             self.update_dealer_button()
-            self.update_game_log(f"{player} Agreed to check")
+            self.update_game_log(f"Players agreed to check")
             player.add_bet(0)
 
             self.previous_player = player
+            self.switch_player()
             self.next_round()
             return True
         else:
             self.previous_player = player
+            self.switch_player()
             return False
 
     def call(self, player):
+        #print("CALL")
         other_player = self.get_opponent_player(player)
-        call_amount = other_player.bet - player.bet
+        call_amount = abs(other_player.bet - player.bet)
         self.pot += call_amount
         player.stack -= call_amount
         self.checkstate = 0
 
         player.add_bet(call_amount)
-        player.action_history.append((Action.CALL, call_amount))
+        player.action_history[self.round_index].append((Action.CALL, call_amount))
         other_player.update_available_actions((Action.CALL, call_amount))
         
         self.update_game_log(f"{player} Called (added {call_amount})")
 
         self.previous_player = player
+        self.switch_player()
         self.next_round()
         return True
 
     def bet(self, player, amount_to_bet):
+        #print("BET", amount_to_bet)
+        if player.stack-amount_to_bet < 0:
+            return False
+
+        
         other_player = self.get_opponent_player(player)        
         self.pot += amount_to_bet
         player.bet += amount_to_bet
         player.stack -= amount_to_bet # PLEASE REVIEW THIS LINE TO SEE IF IT IS DOING THE CORRECT THING
         self.checkstate = 0
         player.add_bet(amount_to_bet)
-        player.action_history.append((Action.BET, amount_to_bet))
+        player.action_history[self.round_index].append((Action.BET, amount_to_bet))
         other_player.update_available_actions((Action.BET, amount_to_bet))
         self.update_game_log(f"{player} Betted {amount_to_bet}")
         self.previous_player = player
+        self.switch_player()
 
     def raise_bet(self, player, amount_to_raise):
+        print("RAISE", amount_to_raise)
         other_player = self.get_opponent_player(player)
         self.checkstate = 0
-        if amount_to_raise <= other_player.previous_bet:
+        if amount_to_raise <= other_player.previous_bet or player.stack-amount_to_raise < 0:
             print("BIG FAT AND FALSE")
             return False
         else:
@@ -313,14 +345,16 @@ class Game:
             player.bet += amount_to_raise
 
             player.add_bet(amount_to_raise)
-            player.action_history.append((Action.RAISE, amount_to_raise))
+            player.action_history[self.round_index].append((Action.RAISE, amount_to_raise))
             other_player.update_available_actions((Action.RAISE, amount_to_raise))
             self.update_game_log(f"{player} Raised ({amount_to_raise})")
             self.previous_player = player
+            self.switch_player()
             return True
 
 
     def all_in(self, player):
+        #print("ALL IN")
         """NEED TO FINALISE HOW THIS FUNCTION WORKS - DISCUSS WITH FOX"""
         self.checkstate = 0
         player.all_in = True
@@ -339,7 +373,6 @@ class Game:
                     player.bet += bet_amt
                     player.stack -= bet_amt
                     player.add_bet(bet_amt)
-
                     self.next_round()
         else:
             # == case is coverered in selection logic (converted to call)
@@ -350,7 +383,9 @@ class Game:
             player.add_bet(bet_amt)
 
 
-        player.action_history.append((Action.ALL_IN,player.stack))
+        player.action_history[self.round_index].append((Action.ALL_IN,player.stack))
         other_player.update_available_actions((Action.ALL_IN, player.stack))
-        self.update_game_log(f"{player} went All In")
+        self.update_game_log(f"{player} went All In, {self.pot}")
         self.previous_player = player
+        self.switch_player()
+

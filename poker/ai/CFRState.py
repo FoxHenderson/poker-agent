@@ -8,7 +8,7 @@ class CFR_State:
                  game: Game,
                  player_id: int):
         self.game = game
-        self.current_round = game.round_index
+        self.current_round = game.game_state
         self.player_id = player_id
         self.player = game.players[player_id]
         self.player_hand = self.player.cards
@@ -70,10 +70,14 @@ class CFR_State:
 
     def get_possible_actions(self):
         player_to_act = self.game.players[self.game.to_act_index]
-        last_action = player_to_act.get_last_action(self.current_round)
-        print(player_to_act, last_action)
+        last_action = player_to_act.get_last_action(self.current_round) # THIS IS WHERE THE ISUE IS
+        print("ACTION:", player_to_act, last_action)
         return player_to_act.get_available_actions(last_action)
+        return self.player.valid_actions
 
+
+       
+        
     def get_hole_cards(self):
         return self.player_hands
 
@@ -91,6 +95,6 @@ class CFR_State:
 
     def is_terminal(self):
         print("IS IT TERMINAL?:", self.game.ended)
-        return self.game.ended
+        return self.game.is_hand_over()
 
 

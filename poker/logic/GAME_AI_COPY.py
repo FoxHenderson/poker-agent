@@ -53,10 +53,8 @@ class Game:
 
 
     def get_opponent_player(self, player):
-        print("PLAYERS:", self.players)
         for p in self.players:
-            print("PLAYER", player, p)
-            if p.ID != player.ID:
+            if p != player:
                 return p
         return False
 

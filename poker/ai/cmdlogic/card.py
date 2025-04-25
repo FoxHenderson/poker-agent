@@ -40,8 +40,8 @@ class Card:
         return f"{self.rank} of {self.suit}"
         # return f"{self.rank} of {self.suit} : {self.bin}"
     
-    def card_img_id(self):
-        return self.rank + "_" + "of" + self.suit.lower()
+    def get_img_id(self):
+        return self.rank + "_" + "of" + "_" + self.suit.lower()
 
     def __CalculateBin(self, ID):
         # sum maffs

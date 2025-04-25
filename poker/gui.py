@@ -1,7 +1,7 @@
 from PIL import ImageTk, Image
 import tkinter as tk
 from tkinter import ttk
-from logic.game_no_loop import Game
+from logic.GAME_AI_COPY import Game
 import logic.simple_players as simple_players
 from logic.actions import Action
 
@@ -98,16 +98,12 @@ class GUI():
 
 
 
-
-
-
-
-
     def card_image(self,frame, card_name):
-        img = Image.open(f"{PATH}\\{card_name}.png")
+        img = Image.open(f"img/cards/{card_name}.png")
         img = img.resize((100, 140))
         img= ImageTk.PhotoImage(img)
         return img
+
 
 
     def display_cards(self,frame, cards):
@@ -266,3 +262,4 @@ class GUI():
 
 
         self.root.mainloop()
+GUI()
