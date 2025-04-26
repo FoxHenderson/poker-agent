@@ -59,9 +59,9 @@ class CFR_Trainer:
             
 
 
-    def cfr_recursive(self, game: Game, state: CFR_State):
+    def cfrfsfa_recursive(self, game: Game, state: CFR_State):
         #print("RECURSION")
-        if state.is_terminal():
+        if game.is_terminal():
            # print("BREAKPOINT")
             t = game.get_terminal_values()
             #print(t)
@@ -80,21 +80,48 @@ class CFR_Trainer:
 
         for action in possible_actions:
 
- 
             next_game = deepcopy(game)
             player_to_act = next_game.players[next_game.to_act_index]
-            possible_actions = player_to_act.valid_actions
             print(f"Exploring action: {action} from player {player_to_act.name} in round {next_game.game_state}")
 
             player_to_act.make_move(next_game, action)
 
-            next_player_index = (state.player_id + 1) % len(next_game.players)
+            next_player_index = (next_game.to_act_index + 1) % len(next_game.players)
             next_game.to_act_index = next_player_index
 
             next_state = CFR_State(next_game, next_game.to_act_index)
             action_values[action] = self.cfr_recursive(next_game, next_state)
 
+    def cfr_recursive(self, game: Game, player: CFR_Player):
+        #print("RECURSION")
+        if game.is_hand_over():
+            t = game.get_terminal_values()
+            print("\n\n",game.game_log)
+            input("PRESS ENTER")
+            return t
+        
+        possible_actions = list(player.valid_actions) #state.get_possible_actions()
+        print(f"OPTIONS for {player}:", possible_actions)
 
+        action_values = {}
+        expected_value = 0.0
+        if AbstractAction.FOLD in possible_actions and AbstractAction.CHECK in possible_actions:
+                possible_actions.remove(AbstractAction.FOLD)
+
+        for action in possible_actions:
+
+            next_game = deepcopy(game)
+            player_to_act = next_game.get_matching_player(player.ID)
+            print(f"Exploring action: {action} from player {player.name} in round {next_game.game_state}")
+
+            if player_to_act.make_move(next_game, action) == False:
+                continue
+
+            other_player = next_game.get_opponent_player(player_to_act)
+
+            next_state = CFR_State(next_game, next_game.to_act_index)
+            
+            action_values[action] = self.cfr_recursive(next_game, other_player)
 
             
         #if AbstractAction.BET_HALF in possible_actions and player_to_act.stack - game.pot//2 < 0:
@@ -119,7 +146,7 @@ class CFR_Trainer:
             game.pre_flop()
             #self.CPUvsCPU(game, player1, player2)
             initial_state = CFR_State(game, 1)
-            self.cfr_recursive(game, initial_state)
+            self.cfr_recursive(game, player1)
             
             #if iteration % (self.iterations/10):
             print(f"Completed {iteration}/10 of training")

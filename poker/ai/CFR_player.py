@@ -48,7 +48,7 @@ class CFR_Player(Player):
                 return valid_actions
             case Action.CALL:
                 # case shouldn't be achieved.
-                valid_actions = []
+                valid_actions = [AbstractAction.FOLD, AbstractAction.CHECK, AbstractAction.BET_HALF, AbstractAction.BET_POT, AbstractAction.ALL_IN]
                 return valid_actions
             case Action.BET:
                 valid_actions.append(AbstractAction.ALL_IN)
@@ -84,19 +84,29 @@ class CFR_Player(Player):
                 amount = game.pot // 2
                 if amount >= self.stack:
                     game.all_in(self)
-                game.raise_bet(self, amount)
+                if game.raise_bet(self, amount) == False:
+                    return False
 
             if new_action == AbstractAction.RAISE_POT:
                 amount = game.pot
                 if amount >= self.stack:
                     game.all_in(self)
-                game.raise_bet(self, amount)
+                if game.raise_bet(self, amount) == False:
+                    return False
 
             if new_action == AbstractAction.BET_HALF:
                 amount = game.pot //2
                 if amount >= self.stack:
                     game.all_in(self)
-                game.bet(self, amount)
+                if game.bet(self, amount) == False:
+                    return False
+
+            if new_action == AbstractAction.BET_POT:
+                amount = game.pot
+                if amount >= self.stack:
+                    game.all_in(self)
+                if game.bet(self, amount) == False:
+                    return False
      
             elif new_action == AbstractAction.CALL:
                 game.call(self)

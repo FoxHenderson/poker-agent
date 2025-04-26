@@ -119,7 +119,6 @@ class Game:
                 return p
         
 
-
 # GAME FUNCTIONS
 
     def deal_cards(self):
