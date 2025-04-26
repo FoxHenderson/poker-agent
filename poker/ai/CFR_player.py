@@ -63,6 +63,48 @@ class CFR_Player(Player):
     #"""I AM GONNA CHANGE THE BELOW CODE!"""#
 
 
+    def make_move(self, game, action):
+            opposition_player = game.get_opponent_player(self)
+            
+
+            new_action = action
+            print("ACTION:", new_action)
+            amount = 0
+           
+
+                
+            if new_action == AbstractAction.RAISE_HALF:
+                amount = game.pot // 2
+                if amount >= self.stack:
+                    game.all_in(self)
+                game.raise_bet(self, amount)
+
+            if new_action == AbstractAction.RAISE_POT:
+                amount = game.pot
+                if amount >= self.stack:
+                    game.all_in(self)
+                game.raise_bet(self, amount)
+
+            if new_action == AbstractAction.BET_HALF:
+                amount = game.pot //2
+                if amount >= self.stack:
+                    game.all_in(self)
+                game.bet(self, amount)
+     
+            elif new_action == AbstractAction.CALL:
+                game.call(self)
+
+            elif new_action == AbstractAction.ALL_IN:
+                game.all_in(self)
+
+            elif new_action == AbstractAction.FOLD:
+                game.fold(self)
+
+            elif new_action == AbstractAction.CHECK:
+                game.check(self)
+
+            print(f"{self}:", new_action, amount)
+            return (new_action, amount)
 
 
 

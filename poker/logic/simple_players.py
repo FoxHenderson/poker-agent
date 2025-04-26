@@ -9,7 +9,7 @@ class Command_Line_Player(Player):
         super().__init__(ID, name)
 
 
-    def make_move(self, game):
+    def make_move(self, game, new_acg):
         if game.ended == False:
             opposition_player = game.get_opponent_player(self)
             
@@ -163,36 +163,45 @@ class Simple_CFR_Player(Player):
         return random.choice(self.valid_actions)
 
     
-    def make_move(self, game):
+    def make_move(self, game, action):
             opposition_player = game.get_opponent_player(self)
             
 
-            new_action = self.choose_move()
+            new_action = action
             print("ACTION:", new_action)
             amount = 0
+            if action == AbstractAction.FOLD and AbstractAction.CHECK in possible_actions:
+                new_action = AbstractAction.CHECK
 
-            if new_action == Action.RAISE:
-                amount = random.randint(min(self.stack, 2 * opposition_player.previous_bet) , self.stack)
-                if amount == self.stack:
+                
+            if new_action == AbstractAction.RAISE_HALF:
+                amount = game.pot // 2
+                if amount >= self.stack:
                     game.all_in(self)
                 game.raise_bet(self, amount)
 
-            if new_action == Action.BET:
-                amount = random.randint(min(self.stack, 2 * opposition_player.previous_bet) , self.stack)
-                if amount == self.stack:
+            if new_action == AbstractAction.RAISE_POT:
+                amount = game.pot
+                if amount >= self.stack:
+                    game.all_in(self)
+                game.raise_bet(self, amount)
+
+            if new_action == AbstractAction.BET_HALF:
+                amount = game.pot //2
+                if amount >= self.stack:
                     game.all_in(self)
                 game.bet(self, amount)
      
-            elif new_action == Action.CALL:
+            elif new_action == AbstractAction.CALL:
                 game.call(self)
 
-            elif new_action == Action.ALL_IN:
+            elif new_action == AbstractAction.ALL_IN:
                 game.all_in(self)
 
-            elif new_action == Action.FOLD:
+            elif new_action == AbstractAction.FOLD:
                 game.fold(self)
 
-            elif new_action == Action.CHECK:
+            elif new_action == AbstractAction.CHECK:
                 game.check(self)
 
             print(f"{self}:", new_action, amount)

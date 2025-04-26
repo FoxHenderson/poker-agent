@@ -47,14 +47,16 @@ class Game:
         self.deal_cards()
 
 
-# UTILITY FUNCTIONS
+# UTILITY FUNCTIONS]
     def update_game_log(self, log):
         self.game_log = self.game_log + "\n" + str(log)
 
 
     def get_opponent_player(self, player):
+        print("PLAYERS:", self.players)
         for p in self.players:
-            if p != player:
+            print("PLAYER", player, p)
+            if p.ID != player.ID:
                 return p
         return False
 
@@ -109,6 +111,9 @@ class Game:
         for player in self.players:
             terminal_values[player] = player.stack
         return terminal_values
+
+    def get_last_action(self):
+        return self.action_history[-1]
 
 
 # GAME FUNCTIONS
@@ -244,6 +249,7 @@ class Game:
 
 
         other_player.update_available_actions((Action.FOLD, 0))
+        self.action_history.append((Action.FOLD, 0))
         player.update_available_actions((Action.FOLD, 0))
         self.update_game_log(f"{player} Folded")
 
@@ -256,6 +262,7 @@ class Game:
         self.checkstate+=1
         self.update_game_log(f"{player} Checked")
         player.action_history.append((Action.CHECK, 0))
+        self.action_history.append((Action.CHECK, 0))
         other_player.update_available_actions((Action.CHECK, 0))
         if self.checkstate == 2:
             self.checkstate = 0
@@ -279,6 +286,7 @@ class Game:
 
         player.add_bet(call_amount)
         player.action_history.append((Action.CALL, call_amount))
+        self.action_history.append((Action.CALL, call_amount))
         other_player.update_available_actions((Action.CALL, call_amount))
         
         self.update_game_log(f"{player} Called (added {call_amount})")
@@ -288,21 +296,28 @@ class Game:
         return True
 
     def bet(self, player, amount_to_bet):
-        other_player = self.get_opponent_player(player)        
+        other_player = self.get_opponent_player(player)
+
+        if player.stack - amount_to_bet < 0 :
+            print("BIG FAT AND FALSE")
+            return False
+        
         self.pot += amount_to_bet
         player.bet += amount_to_bet
         player.stack -= amount_to_bet # PLEASE REVIEW THIS LINE TO SEE IF IT IS DOING THE CORRECT THING
         self.checkstate = 0
         player.add_bet(amount_to_bet)
         player.action_history.append((Action.BET, amount_to_bet))
+        self.action_history.append((Action.BET, amount_to_bet))
         other_player.update_available_actions((Action.BET, amount_to_bet))
         self.update_game_log(f"{player} Betted {amount_to_bet}")
         self.previous_player = player
+        return True
 
     def raise_bet(self, player, amount_to_raise):
         other_player = self.get_opponent_player(player)
         self.checkstate = 0
-        if amount_to_raise <= other_player.previous_bet:
+        if amount_to_raise <= other_player.previous_bet or player.stack - amount_to_raise < 0 :
             print("BIG FAT AND FALSE")
             return False
         else:
@@ -312,7 +327,9 @@ class Game:
 
             player.add_bet(amount_to_raise)
             player.action_history.append((Action.RAISE, amount_to_raise))
+            self.action_history.append((Action.RAISE, amount_to_raise))
             other_player.update_available_actions((Action.RAISE, amount_to_raise))
+            
             self.update_game_log(f"{player} Raised ({amount_to_raise})")
             self.previous_player = player
             return True
@@ -349,6 +366,7 @@ class Game:
 
 
         player.action_history.append((Action.ALL_IN,player.stack))
+        self.action_history.append((Action.ALL_IN, player.stack))
         other_player.update_available_actions((Action.ALL_IN, player.stack))
         self.update_game_log(f"{player} went All In")
         self.previous_player = player

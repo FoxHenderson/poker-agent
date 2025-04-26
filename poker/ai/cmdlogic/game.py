@@ -115,6 +115,12 @@ class Game:
     def get_last_action(self):
         return self.action_history[-1]
 
+    def get_matching_player(self, playerID):
+        for p in self.players:
+            if p.ID == playerID:
+                return p
+        
+
 
 # GAME FUNCTIONS
 
@@ -267,7 +273,7 @@ class Game:
         if self.checkstate == 2:
             self.checkstate = 0
             self.update_dealer_button()
-            self.update_game_log(f"{player} Agreed to check")
+            self.update_game_log(f"Players agreed to check")
             player.add_bet(0)
 
             self.previous_player = player
@@ -279,7 +285,7 @@ class Game:
 
     def call(self, player):
         other_player = self.get_opponent_player(player)
-        call_amount = other_player.bet - player.bet
+        call_amount = abs(other_player.bet - player.bet)
         self.pot += call_amount
         player.stack -= call_amount
         self.checkstate = 0
@@ -296,7 +302,12 @@ class Game:
         return True
 
     def bet(self, player, amount_to_bet):
-        other_player = self.get_opponent_player(player)        
+        other_player = self.get_opponent_player(player)
+
+        if player.stack - amount_to_bet < 0 :
+            print("BIG FAT AND FALSE")
+            return False
+        
         self.pot += amount_to_bet
         player.bet += amount_to_bet
         player.stack -= amount_to_bet # PLEASE REVIEW THIS LINE TO SEE IF IT IS DOING THE CORRECT THING
@@ -307,11 +318,12 @@ class Game:
         other_player.update_available_actions((Action.BET, amount_to_bet))
         self.update_game_log(f"{player} Betted {amount_to_bet}")
         self.previous_player = player
+        return True
 
     def raise_bet(self, player, amount_to_raise):
         other_player = self.get_opponent_player(player)
         self.checkstate = 0
-        if amount_to_raise <= other_player.previous_bet:
+        if amount_to_raise <= other_player.previous_bet or player.stack - amount_to_raise < 0 :
             print("BIG FAT AND FALSE")
             return False
         else:
