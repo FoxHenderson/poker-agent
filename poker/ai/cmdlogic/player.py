@@ -40,8 +40,8 @@ class Player:
         self.action_history[game_state].append(last_action)
 
     def get_last_action(self, state):
-        print("ACTION HISTORY:", self.action_history)
-        return self.action_history[-1]
+        if len(self.action_history[state]) > 0:
+            return self.action_history[state][-1]
         return None
 
     def action(self, last_action:tuple[Action, int], call_amt):

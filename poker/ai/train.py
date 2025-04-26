@@ -60,54 +60,54 @@ class CFR_Trainer:
 
 
     def cfr_recursive(self, game: Game, state: CFR_State):
-        print("RECURSION")
+        #print("RECURSION")
         if state.is_terminal():
-            print("BREAKPOINT")
+           # print("BREAKPOINT")
             t = game.get_terminal_values()
-            print(t)
+            #print(t)
             print("\n\n",game.game_log)
             input("PRESS ENTER")
             return t
         
         player_to_act = game.players[game.to_act_index]
-        possible_actions = state.get_possible_actions()
-        print("OPTIONS:", possible_actions)
+        possible_actions = player_to_act.valid_actions #state.get_possible_actions()
+        print(f"OPTIONS for {player_to_act}:", possible_actions)
 
         action_values = {}
         expected_value = 0.0
         if AbstractAction.FOLD in possible_actions and AbstractAction.CHECK in possible_actions:
                 possible_actions.remove(AbstractAction.FOLD)
-        if AbstractAction.BET_HALF in possible_actions and player_to_act.stack - game.pot//2 < 0:
-                possible_actions.remove(AbstractAction.BET_HALF)
-        if AbstractAction.BET_POT in possible_actions and player_to_act.stack - game.pot < 0:
-                possible_actions.remove(AbstractAction.BET_HALF)
 
-        if AbstractAction.RAISE_HALF in possible_actions and player_to_act.stack - game.pot//2 < 0:
-                possible_actions.remove(AbstractAction.RAISE_HALF)
-        if AbstractAction.RAISE_POT in possible_actions and player_to_act.stack - game.pot < 0:
-                possible_actions.remove(AbstractAction.RAISE_POT)
         for action in possible_actions:
-            
 
-            
+ 
             next_game = deepcopy(game)
-            next_state = CFR_State(next_game, state.player_id)
-            player_to_act = next_game.get_matching_player(player_to_act.ID)
+            player_to_act = next_game.players[next_game.to_act_index]
+            possible_actions = player_to_act.valid_actions
             print(f"Exploring action: {action} from player {player_to_act.name} in round {next_game.game_state}")
 
-
-            print("POT BEFORE:", next_game.pot, "P1 STACK", next_game.players[0].stack, "P2 stack", next_game.players[1].stack)
             player_to_act.make_move(next_game, action)
-            print("POT After:", next_game.pot, "P1 STACK", next_game.players[0].stack, "P2 stack", next_game.players[1].stack)
 
+            next_player_index = (state.player_id + 1) % len(next_game.players)
+            next_game.to_act_index = next_player_index
 
-            
-            next_player_id = (state.player_id + 1) % len(next_game.players)
-            next_game.to_act_index = next_player_id
-            next_state = CFR_State(next_game, next_player_id)
+            next_state = CFR_State(next_game, next_game.to_act_index)
             action_values[action] = self.cfr_recursive(next_game, next_state)
-            
 
+
+
+            
+        #if AbstractAction.BET_HALF in possible_actions and player_to_act.stack - game.pot//2 < 0:
+         #       possible_actions.remove(AbstractAction.BET_HALF)
+        #if AbstractAction.BET_POT in possible_actions and player_to_act.stack - game.pot < 0:
+         #       possible_actions.remove(AbstractAction.BET_POT)
+
+       # if AbstractAction.RAISE_HALF in possible_actions and player_to_act.stack - game.pot//2 < 0:
+        #        possible_actions.remove(AbstractAction.RAISE_HALF)
+        #if AbstractAction.RAISE_POT in possible_actions and player_to_act.stack - game.pot < 0:
+         #       possible_actions.remove(AbstractAction.RAISE_POT)
+
+        #print("OPTIONS_SIMP:", possible_actions)
         
     def train(self):
         player1 = CFR_Player(0, "Player1")

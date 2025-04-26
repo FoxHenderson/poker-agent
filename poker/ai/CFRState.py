@@ -69,10 +69,13 @@ class CFR_State:
     # I THINK WE ALSO NEED A METRIC WHICH THINKS ABOUT HOW CONFIDENT AN OPPOSITION PLAYER IS GOING TO FEEL 
 
     def get_possible_actions(self):
-        return self.player.valid_actions
-        last_action = self.player.get_last_action()
-        print("ACTION:", self.player, last_action)
-        return self.player.get_available_actions(last_action)
+        player_to_act = self.game.players[self.game.to_act_index]
+        last_action = player_to_act.get_last_action(self.current_round)
+        print("ACTION:", player_to_act, last_action)
+        return player_to_act.get_available_actions(last_action)
+        
+        #return self.player.valid_actions
+    
 
 
        
