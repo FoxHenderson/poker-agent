@@ -1,4 +1,4 @@
-#from gametree import CFR_Node
+	#from gametree import CFR_Node
 from cmdlogic.player import Player
 from cmdlogic.card import Card
 from cmdlogic.actions import Action
@@ -20,7 +20,7 @@ class CFR_Player(Player):
 
 
 
-    def get_available_actions(self, last_action:tuple[Action, int]) -> list:
+    def update_available_actions(self, last_action:tuple[Action, int]) -> list:
         last_act = last_action[0]
         last_amt = last_action[1]
 
@@ -32,14 +32,14 @@ class CFR_Player(Player):
         match last_act:
             case Action.FOLD:
                 # case shouldn't be achieved
-                valid_actions = []
+                self.valid_actions = []
                 return self.valid_actions
             case Action.CHECK:
-                valid_actions =  [AbstractAction.FOLD, AbstractAction.CHECK, AbstractAction.BET_HALF, AbstractAction.BET_POT, Action.ALL_IN]
+                self.valid_actions =  [AbstractAction.FOLD, AbstractAction.CHECK, AbstractAction.BET_HALF, AbstractAction.BET_POT, Action.ALL_IN]
                 return self.valid_actions
             case Action.CALL:
                 # case shouldn't be achieved.
-                valid_actions = [AbstractAction.FOLD, AbstractAction.CHECK, AbstractAction.BET_HALF, AbstractAction.BET_POT, AbstractAction.ALL_IN]
+                self.valid_actions = [AbstractAction.FOLD, AbstractAction.CHECK, AbstractAction.BET_HALF, AbstractAction.BET_POT, AbstractAction.ALL_IN]
                 return self.valid_actions
             case Action.BET:
                 valid_actions.append(AbstractAction.ALL_IN)
@@ -48,15 +48,17 @@ class CFR_Player(Player):
                     self.valid_actions.append(AbstractAction.RAISE_HALF)
                     self.valid_actions.append(AbstractAction.RAISE_POT)
             case Action.RAISE:
-                valid_actions.append(Action.ALL_IN)
+                print("LOOK ITS A RAISE ACTION", last_amt, self.stack)
+                self.valid_actions.append(Action.ALL_IN)
                 if self.stack > last_amt:
                     self.valid_actions.append(AbstractAction.CALL)
                     self.valid_actions.append(AbstractAction.RAISE_HALF)
                     self.valid_actions.append(AbstractAction.RAISE_POT)
+                print(self.valid_actions)
             case Action.ALL_IN:
-                valid_actions.append(AbstractAction.CALL)
+                self.valid_actions.append(AbstractAction.CALL)
             
-        return valid_actions
+        return self.valid_actions
 
     #"""I AM GONNA CHANGE THE BELOW CODE!"""#
 

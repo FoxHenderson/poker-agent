@@ -48,8 +48,8 @@ class CFR_Trainer:
             next_state = CFR_State(next_game, state.player_id)
 
 
-            if action == AbstractAction.FOLD and AbstractAction.CHECK in possible_actions:
-                action = AbstractAction.CHECK
+            #if action == AbstractAction.FOLD and AbstractAction.CHECK in possible_actions:
+             #   action = AbstractAction.CHECK
 
             print(f"Exploring action: {action} from player {player_to_act.name} in round {next_game.game_state}")
 
@@ -78,8 +78,9 @@ class CFR_Trainer:
                 next_game.all_in(player_to_act)
 
             #time.sleep(0.2)
-            next_player_id = (state.player_id + 1) % len(next_game.players)
-            next_state = CFR_State(next_game, next_game.to_act_index)
+            next_player_id = (state.player_id + 1) % len(next_game.players)#
+            next_game.to_act_index = next_player_id
+            next_state = CFR_State(next_game, next_player_id)
             action_values[action] = self.cfr_recursive(next_game, next_state)
             
 
